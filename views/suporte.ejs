@@ -86,18 +86,19 @@
                 <a href="/suporte/novo" class="btn-primary">Abrir Chamado</a>
             </div>
 
-            <!-- Bloco Zents (Condicional) -->
-            <% if (user.empresa === 'Zents') { %>
+            <!-- Bloco Zents (Condicional RBAC) -->
+            <% if (user && (user.role === 'zents' || user.role === 'admin' || user.empresa === 'Zents')) { %>
             <div class="glass-card border-purple" style="border-color: #7000ff;">
-                <h3 style="color: #7000ff;">Painel Dev Sérgio</h3>
-                <p>Status de desenvolvimento e bugs.</p>
+                <h3 style="color: #7000ff;">Painel de chamados zents</h3>
+                <p>Gestão de tarefas e report de erros do webapp da Zents.</p>
+                <a href="/upgrade/chamados" class="btn-primary" style="background: #7000ff; color: #fff; margin-bottom: 15px;">Acessar Requerimentos</a>
                 <br>
-                <span class="status-badge" style="border: 1px solid #7000ff;">Exclusivo Zents</span>
+                <span class="status-badge" style="border: 1px solid #7000ff; color: #7000ff;">Exclusivo Zents</span>
             </div>
             <% } %>
 
             <!-- Lista de Chamados Ativos (Mock) -->
-            <div class="glass-card full-width">
+            <div class="glass-card full-width" style="overflow-x: auto;">
                 <h3 class="inter-font">Histórico Recente</h3>
                 <table class="w-full mt-2 text-left">
                     <thead>

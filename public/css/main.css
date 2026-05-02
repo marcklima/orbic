@@ -356,3 +356,53 @@ footer {
     50% { opacity: 1; }
     100% { top: 90%; opacity: 0; }
 }
+
+/* =========================================================================
+   RESPONSIVIDADE GERAL
+   ========================================================================= */
+@media (max-width: 992px) {
+    h1 { font-size: 3rem !important; }
+    .hero-internal h1 { font-size: 2.5rem; }
+    .device-frame { transform: none; width: 100%; height: auto; min-height: 400px; }
+}
+
+@media (max-width: 768px) {
+    nav {
+        flex-direction: column;
+        padding: 15px;
+    }
+    .nav-links {
+        margin-top: 15px;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+    .nav-links a {
+        margin-left: 10px !important;
+        font-size: 0.7rem;
+    }
+    .nav-links > div {
+        border-left: none !important;
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        margin-top: 10px;
+        width: 100%;
+        justify-content: center;
+    }
+    .copy-section, .vto-section {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+    }
+    .intellect-container {
+        flex-direction: column;
+    }
+    .slider-container h2 { font-size: 2rem; }
+    
+    /* Tabelas Responsivas */
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+

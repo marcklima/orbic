@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORBIC Upgrade | Painel de Chamados ITIL</title>
+    <!-- Carregando CSS Isolado do novo projeto -->
+    <link rel="stylesheet" href="/css/upgrade.css">
+</head>
+<body class="upgrade-theme-scope">
+
+<div class="orbic-upgrade-wrapper">
+
+    <header class="upgrade-header">
+        <h1>PAINEL ZENTS <span style="font-size: 0.8rem; border: 1px solid var(--brand-upgrade); padding: 2px 8px; border-radius: 10px; margin-left: 10px;">ITIL V4</span></h1>
+        <nav class="upgrade-nav">
+            <a href="/suporte">← Voltar para Orbic Core</a>
+            <a href="#">Meus Chamados</a>
+        </nav>
+    </header>
+
+    <main class="upgrade-container">
+        <div style="margin-bottom: 30px;">
+            <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 2.5rem; margin-bottom: 10px;">Abertura de Chamado Técnico</h2>
+            <p style="color: #aaa;">Preencha os dados abaixo com precisão para que o engenheiro responsável possa atuar o mais rápido possível.</p>
+        </div>
+
+        <form action="/api/chamados" method="POST" enctype="multipart/form-data" class="itil-card">
+            
+            <div class="form-group">
+                <label class="form-label">
+                    TIPO DE CHAMADO
+                    <span class="help-icon" data-tooltip="Incidente: Algo que deveria estar funcionando, mas parou ou apresenta erro.&#xa;Requisição: Um pedido de algo novo, como liberação de acesso ou nova funcionalidade.">?</span>
+                </label>
+                <select name="tipo" class="form-control" required>
+                    <option value="" disabled selected>Selecione o tipo...</option>
+                    <option value="incidente">Incidente (Erro/Falha)</option>
+                    <option value="requisicao">Requisição de Serviço</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    CATEGORIA
+                    <span class="help-icon" data-tooltip="Define o contexto do problema. Ajuda o time a direcionar para o desenvolvedor ou devops correto.">?</span>
+                </label>
+                <select name="categoria" class="form-control" required>
+                    <option value="" disabled selected>Classifique o contexto...</option>
+                    <option value="infra">Infraestrutura (Servidor/Banco de Dados)</option>
+                    <option value="software">Software (Regra de Negócio/Backend)</option>
+                    <option value="interface">Interface (UX/UI/Frontend)</option>
+                    <option value="api">API / Integrações (n8n/Supabase)</option>
+                    <option value="acessos">Acessos e Permissões</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">TÍTULO RESUMIDO</label>
+                <input type="text" name="titulo" class="form-control" placeholder="Ex: Erro ao gerar PDF no Painel" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">DESCRIÇÃO DETALHADA</label>
+                <textarea name="descricao" class="form-control" rows="5" placeholder="Passo a passo para reproduzir o problema..." required></textarea>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid var(--border-upgrade); margin: 30px 0;">
+
+            <div class="priority-grid">
+                <div class="form-group">
+                    <label class="form-label">
+                        IMPACTO
+                        <span class="help-icon" data-tooltip="O quanto isso afeta o negócio?&#xa;Alto: Toda a empresa parada.&#xa;Médio: Um setor/equipe impactado.&#xa;Baixo: Apenas 1 usuário afetado.">?</span>
+                    </label>
+                    <select id="impacto" name="impacto" class="form-control" onchange="calcularPrioridade()" required>
+                        <option value="3">Baixo (1 Usuário)</option>
+                        <option value="2">Médio (Uma equipe/setor)</option>
+                        <option value="1">Alto (Toda a empresa/Operação parada)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        URGÊNCIA
+                        <span class="help-icon" data-tooltip="O quão rápido o negócio precisa da solução?&#xa;Alta: Imediato, travando faturamento.&#xa;Média: Preciso para hoje.&#xa;Baixa: Pode ser resolvido nesta sprint.">?</span>
+                    </label>
+                    <select id="urgencia" name="urgencia" class="form-control" onchange="calcularPrioridade()" required>
+                        <option value="3">Baixa (Pode esperar alguns dias)</option>
+                        <option value="2">Média (Preciso para hoje)</option>
+                        <option value="1">Alta (Imediato / Crítico)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-upgrade);">
+                <div>
+                    <strong style="color: var(--brand-upgrade); font-family: 'Space Grotesk', sans-serif;">PRIORIDADE CALCULADA (SLA)</strong>
+                    <p style="font-size: 0.85rem; color: #888; margin: 0;">Calculada automaticamente baseada na matriz de Impacto x Urgência.</p>
+                </div>
+                <div id="badge-prioridade" style="padding: 8px 20px; border-radius: 4px; font-weight: bold; font-family: 'Space Grotesk', sans-serif; background: #333; color: #fff;">
+                    P4 - Planejado
+                </div>
+                <!-- Campo oculto para enviar no formulário -->
+                <input type="hidden" id="input-prioridade" name="prioridade" value="P4">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">ANEXOS (EVIDÊNCIAS / LOGS)</label>
+                <div class="drop-zone" id="drop-zone">
+                    <span style="font-size: 2rem; display: block; margin-bottom: 10px;">📄</span>
+                    Arraste os arquivos aqui ou clique para selecionar<br>
+                    <small style="color: #666;">Máximo 5MB (JPG, PNG, PDF)</small>
+                    <input type="file" name="anexos" id="file-input" style="display: none;" multiple>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Registrar Chamado no Sistema</button>
+        </form>
+
+    </main>
+
+</div>
+
+<script>
+    // Lógica ITIL: Matriz de Prioridade
+    function calcularPrioridade() {
+        const impacto = parseInt(document.getElementById('impacto').value);
+        const urgencia = parseInt(document.getElementById('urgencia').value);
+        
+        let prioridade = "P4";
+        let cor = "#444";
+        let texto = "P4 - Planejado";
+
+        // Matriz 3x3 simples
+        const soma = impacto + urgencia;
+        
+        if (soma === 2) {
+            prioridade = "P1";
+            cor = "#ff0033";
+            texto = "P1 - Crítico (SLA: 2h)";
+        } else if (soma === 3 || soma === 4) {
+            prioridade = "P2";
+            cor = "#ff8800";
+            texto = "P2 - Alto (SLA: 8h)";
+        } else if (soma === 5) {
+            prioridade = "P3";
+            cor = "#ffcc00";
+            texto = "P3 - Médio (SLA: 24h)";
+        } else {
+            prioridade = "P4";
+            cor = "#33aa33";
+            texto = "P4 - Baixo (SLA: 7 dias)";
+        }
+
+        const badge = document.getElementById('badge-prioridade');
+        badge.style.backgroundColor = cor;
+        if(prioridade === 'P3') badge.style.color = '#000'; // Contraste para amarelo
+        else badge.style.color = '#fff';
+        
+        badge.innerText = texto;
+        document.getElementById('input-prioridade').value = prioridade;
+    }
+
+    // Drag and Drop Logic
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            dropZone.innerHTML = `<span style="color:var(--brand-upgrade); font-weight:bold;">${e.dataTransfer.files.length} arquivo(s) selecionado(s)</span>`;
+        }
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) {
+            dropZone.innerHTML = `<span style="color:var(--brand-upgrade); font-weight:bold;">${fileInput.files.length} arquivo(s) selecionado(s)</span>`;
+        }
+    });
+
+    // Inicializar matriz
+    calcularPrioridade();
+</script>
+
+</body>
+</html>

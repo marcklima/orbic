@@ -4,32 +4,34 @@
 
 .upgrade-theme-scope {
     /* Variáveis exclusivas do Upgrade */
-    --bg-upgrade: #ffffff;
-    --text-upgrade: #1a1a1a;
-    --brand-upgrade: #ff5500;
-    --border-upgrade: #e0e0e0;
+    --bg-upgrade: #080808;
+    --text-upgrade: #e0e0e0;
+    --brand-upgrade: #7000ff; /* Mudamos pra roxo para combinar com Zents */
+    --border-upgrade: rgba(112, 0, 255, 0.3);
+    --glass-bg: rgba(20, 20, 25, 0.4);
 
     background-color: var(--bg-upgrade);
     color: var(--text-upgrade);
-    font-family: 'Helvetica Neue', Arial, sans-serif; /* Fonte diferente */
+    font-family: 'Inter', Arial, sans-serif;
     margin: 0;
     padding: 0;
     min-height: 100vh;
 }
 
 .upgrade-theme-scope .upgrade-header {
-    background-color: var(--bg-upgrade);
+    background-color: rgba(0,0,0,0.8);
     border-bottom: 1px solid var(--border-upgrade);
     padding: 20px 5%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    backdrop-filter: blur(10px);
 }
 
 .upgrade-theme-scope .upgrade-header h1 {
     font-size: 1.5rem;
     color: var(--brand-upgrade);
+    font-family: 'Space Grotesk', sans-serif;
     margin: 0;
 }
 
@@ -38,10 +40,12 @@
     text-decoration: none;
     margin-left: 20px;
     font-weight: bold;
+    transition: 0.3s;
 }
 
 .upgrade-theme-scope .upgrade-nav a:hover {
     color: var(--brand-upgrade);
+    text-shadow: 0 0 10px var(--brand-upgrade);
 }
 
 .upgrade-theme-scope .upgrade-container {
@@ -50,26 +54,147 @@
     margin: 0 auto;
 }
 
-.upgrade-theme-scope .upgrade-card {
-    background: #fff;
+/* Glassmorphism ITIL Dashboard */
+.upgrade-theme-scope .itil-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
     border: 1px solid var(--border-upgrade);
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 30px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    margin-top: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    margin-top: 20px;
 }
 
-.upgrade-theme-scope .upgrade-btn {
+.upgrade-theme-scope .form-group {
+    margin-bottom: 25px;
+    position: relative;
+}
+
+.upgrade-theme-scope .form-label {
+    display: flex;
+    align-items: center;
+    color: var(--brand-upgrade);
+    font-family: 'Space Grotesk', sans-serif;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+}
+
+.upgrade-theme-scope .form-control {
+    width: 100%;
+    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: 0.3s;
+}
+
+.upgrade-theme-scope .form-control:focus {
+    border-color: var(--brand-upgrade);
+    box-shadow: 0 0 15px rgba(112, 0, 255, 0.2);
+}
+
+/* Tooltip (Popups de Ajuda) */
+.upgrade-theme-scope .help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 11px;
+    margin-left: 10px;
+    cursor: help;
+    position: relative;
+    font-family: 'Inter', sans-serif;
+}
+
+.upgrade-theme-scope .help-icon:hover {
+    background: var(--brand-upgrade);
+}
+
+.upgrade-theme-scope .help-icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 150%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid var(--brand-upgrade);
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    width: max-content;
+    max-width: 250px;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.2s;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    z-index: 100;
+}
+
+.upgrade-theme-scope .help-icon:hover::after {
+    opacity: 1;
+    bottom: 130%;
+}
+
+/* Drag and Drop Area */
+.upgrade-theme-scope .drop-zone {
+    width: 100%;
+    padding: 40px;
+    border: 2px dashed rgba(255,255,255,0.2);
+    border-radius: 8px;
+    text-align: center;
+    color: #888;
+    cursor: pointer;
+    transition: 0.3s;
+    background: rgba(0,0,0,0.3);
+}
+
+.upgrade-theme-scope .drop-zone:hover, .upgrade-theme-scope .drop-zone.dragover {
+    border-color: var(--brand-upgrade);
+    background: rgba(112, 0, 255, 0.05);
+    color: #fff;
+}
+
+/* Botão Submissão */
+.upgrade-theme-scope .btn-submit {
     background-color: var(--brand-upgrade);
     color: #fff;
     border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
+    padding: 15px 30px;
+    border-radius: 6px;
     cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
     font-weight: bold;
-    transition: background 0.3s;
+    text-transform: uppercase;
+    transition: 0.3s;
+    width: 100%;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
 }
 
-.upgrade-theme-scope .upgrade-btn:hover {
-    background-color: #cc4400;
+.upgrade-theme-scope .btn-submit:hover {
+    background-color: #8a2be2;
+    box-shadow: 0 0 20px var(--brand-upgrade);
+}
+
+/* Grid Priority Matrix */
+.upgrade-theme-scope .priority-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .upgrade-theme-scope .priority-grid {
+        grid-template-columns: 1fr;
+    }
 }

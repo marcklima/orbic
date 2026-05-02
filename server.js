@@ -9,6 +9,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const session = require('express-session');
 const axios = require('axios');
+const { createClient } = require('@supabase/supabase-js');
+
+// Configuração Supabase
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ukpkzjidelestigniyni.supabase.co';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'chave-anonima';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 app.use(express.json());
 app.use(session({
@@ -18,32 +24,121 @@ app.use(session({
     cookie: { secure: false }
 }));
 
+// Middleware Global de Autenticação (Popula dados do usuário nas views)
+app.use((req, res, next) => {
+    res.locals.user = req.session.user || null;
+    next();
+});
+
+// Middleware de Proteção
+const requireAuth = (req, res, next) => {
+    if (!req.session.user) {
+        return res.redirect('/auth/login/google');
+    }
+    next();
+};
+
+// Rotas de Autenticação (Google OAuth)
+app.get('/auth/login/google', async (req, res) => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: 'http://localhost:3000/auth/callback' }
+    });
+    if (data?.url) res.redirect(data.url);
+    else res.status(500).send("Erro ao inicializar Google Auth.");
+});
+
+app.get('/auth/callback', async (req, res) => {
+    const { code } = req.query;
+    if (code) {
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        if (data && data.user) {
+            const email = data.user.email;
+            // RBAC Dinâmico baseado no e-mail
+            let empresa = 'Cliente';
+            let role = 'cliente';
+            
+            if (email.includes('@zents') || email === 'dev@orbic.com') {
+                empresa = 'Zents';
+                role = 'zents';
+            }
+            if (email.includes('admin') || email === 'marcklima@orbic.com') {
+                role = 'admin';
+            }
+
+            req.session.user = {
+                id: data.user.id,
+                email: email,
+                nome: data.user.user_metadata.full_name || "Usuário",
+                picture: data.user.user_metadata.avatar_url || "",
+                empresa: empresa,
+                role: role
+            };
+        }
+    }
+    res.redirect('/suporte');
+});
+
+app.get('/auth/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/');
+});
+
+
 app.get('/', (req, res) => res.render('orbic'));
 app.get('/hubimb', (req, res) => res.render('hubimb'));
 app.get('/intellect', (req, res) => res.render('intellect'));
 app.get('/videobook', (req, res) => res.render('videobook'));
 app.get('/chat', (req, res) => res.render('chat'));
 
+// Aplicar requireAuth nas rotas protegidas
+app.use('/upgrade', requireAuth);
 app.get('/upgrade', (req, res) => res.render('upgrade/index', { layout: false }));
 
-// Novas Rotas para o Sistema de Suporte e Financeiro
-app.get('/suporte', (req, res) => {
-    // Simulando dados que virão do banco/sessão futuramente
-    const user = { nome: "Usuário", empresa: "Zents", role: "admin" }; 
-    res.render('suporte', { user });
+// Rotas do Novo Módulo ITIL (Upgrade Zents)
+app.get('/upgrade/chamados', requireAuth, (req, res) => {
+    res.render('upgrade/chamados', { layout: false });
 });
 
-app.get('/suporte/novo', (req, res) => {
+// Configuração do multer para anexos (simulado para a rota POST)
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
+
+app.post('/api/chamados', upload.array('anexos', 3), async (req, res) => {
+    try {
+        const { tipo, categoria, titulo, descricao, impacto, urgencia, prioridade } = req.body;
+        console.log(`[ITIL Zents] Chamado Aberto: ${prioridade} - ${titulo}`);
+        
+        // Simulação de Exponential Backoff se fosse conectar com a IA do Intellect
+        // let attempt = 0; ...
+        
+        // Simular o disparo de E-mail de confirmação do chamado:
+        console.log(`[E-MAIL SIMULADO] Disparando e-mail para dev@orbic.com -> Novo chamado ${prioridade} criado com sucesso.`);
+
+        // Após salvar, redireciona de volta com mensagem de sucesso
+        res.redirect('/upgrade/chamados?success=true');
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Erro ao registrar chamado.");
+    }
+});
+
+// Novas Rotas para o Sistema de Suporte e Financeiro
+app.get('/suporte', requireAuth, (req, res) => {
+    res.render('suporte');
+});
+
+app.get('/suporte/novo', requireAuth, (req, res) => {
     res.render('suporte_novo');
 });
 
-app.get('/financeiro', (req, res) => {
+app.get('/financeiro', requireAuth, (req, res) => {
     res.render('financeiro');
 });
 
 // Rotas Administrativas
 const adminRoutes = require('./routes/admin');
-app.use('/admin', adminRoutes);
+app.use('/admin', requireAuth, adminRoutes);
 // Configuração do PG (Preencha as credenciais do seu banco)
 const { Pool } = require('pg');
 const pool = new Pool({
