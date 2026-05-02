@@ -1,0 +1,211 @@
+<!-- views/admin_upload.ejs -->
+<!DOCTYPE html>
+<html lang="pt-br" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORBIC | Ingestão de Conhecimento RAG</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/main.css">
+    
+    <style>
+        /* ========================================================
+           CORREÇÃO DO MOUSE E BLOCOS DE OVERLAY
+           ======================================================== */
+        * { cursor: auto !important; } 
+        button, a, select, input[type="file"], .btn-ai { cursor: pointer !important; }
+        
+        /* Oculta os custom cursors estáticos que podem estar invisíveis barrando clicks */
+        #cursor, #cursor-dot, .cursor-overlay { 
+            display: none !important; 
+            pointer-events: none !important; 
+        }
+
+        /* ========================================================
+           CSS ESSENCIAL ORBIC (INCORPORADO PARA FUNCIONAR LOCAL / OFFLINE SEM O BLOQUEIO DE CDN)
+           ======================================================== */
+        * { box-sizing: border-box; }
+        body { margin: 0; background-color: #0b0f19; color: #ffffff; font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Space Grotesk', sans-serif; }
+        
+        .container { width: 100%; padding-right: 15px; padding-left: 15px; margin-right: auto; margin-left: auto; max-width: 800px; }
+        .my-5 { margin-top: 3rem; margin-bottom: 3rem; }
+        .pt-5 { padding-top: 3rem; }
+        .mb-4 { margin-bottom: 1.5rem; }
+        .mt-5 { margin-top: 3rem; }
+        .text-center { text-align: center; }
+        .d-flex { display: flex; }
+        .justify-content-between { justify-content: space-between; }
+        .align-items-center { align-items: center; }
+        .text-decoration-none { text-decoration: none; }
+        .fw-bold { font-weight: bold; }
+        .text-muted { color: #6c757d; }
+        .w-100 { width: 100%; }
+        
+        /* Grid nativo para não precisar do CDN */
+        .row { display: flex; flex-wrap: wrap; margin-right: -15px; margin-left: -15px; gap: 15px 0;}
+        .col-12 { flex: 0 0 100%; max-width: 100%; position: relative; width: 100%; padding-right: 15px; padding-left: 15px; }
+        @media (min-width: 768px) {
+            .col-md-6 { flex: 0 0 50%; max-width: 50%; position: relative; width: 100%; padding-right: 15px; padding-left: 15px; }
+        }
+        
+        /* Sistema de Alertas */
+        .alert { padding: 1rem 1rem; margin-bottom: 1rem; border: 1px solid transparent; border-radius: 0.25rem; font-weight: 500;}
+        .alert-danger { color: #ffffff; background-color: rgba(220, 53, 69, 0.4); border-color: #dc3545; border-left: 5px solid #dc3545;}
+        .alert-success { color: #ffffff; background-color: rgba(25, 135, 84, 0.4); border-color: #198754; border-left: 5px solid #198754;}
+        
+        /* Tema Administrativo - Glassmorphism */
+        .admin-glass-card {
+            background: rgba(15, 23, 42, 0.9); 
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 255, 255, 0.15);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            z-index: 10;
+        }
+
+        .admin-glass-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(90deg, #0b0f19, #00ffff, #0055ff, #0b0f19);
+        }
+
+        /* Campos Inteligentes (Inputs / Select / Textarea) */
+        .form-label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #a0aec0; font-weight: 500; margin-top: 10px; }
+        .form-control, .form-select {
+            display: block; width: 100%; padding: 0.85rem 1rem; font-size: 1rem;
+            font-weight: 400; line-height: 1.5; color: #fff; background-color: rgba(0, 0, 0, 0.5);
+            background-clip: padding-box; border: 1px solid rgba(255, 255, 255, 0.15);
+            appearance: none; border-radius: 0.375rem; transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: rgba(0, 0, 0, 0.7); border-color: #00ffff; outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 255, 255, 0.15); color: #fff;
+        }
+        
+        .form-select option { background-color: #0b0f19; color: #fff;}
+
+        /* Botão Ação IA */
+        .btn-ai {
+            background: linear-gradient(135deg, #0055ff, #00ffff); border: none; color: #0b0f19;
+            font-weight: 700; padding: 16px 28px; border-radius: 8px; font-size: 1.1rem;
+            text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-ai:hover {
+            transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0, 255, 255, 0.3);
+            color: #ffffff; background: linear-gradient(135deg, #00ffff, #0055ff);
+        }
+
+        .text-cyan { color: #00ffff !important; }
+    </style>
+</head>
+<body>
+
+    <%- include('partials/navbar') %>
+
+    <main class="container my-5 pt-5">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                
+                <div class="mb-4 d-flex justify-content-between align-items-center">
+                    <a href="/" class="text-decoration-none text-cyan">
+                        ← Voltar para o Dashboard
+                    </a>
+                </div>
+
+                <div class="admin-glass-card">
+                    <div class="text-center mb-4">
+                        <h2 class="text-cyan fw-bold">Alimentar RAG Orbic</h2>
+                        <p class="text-muted">Faça o upload da obra e preencha os metadados nativos com exatidão.</p>
+                    </div>
+
+                    <% if (typeof error !== 'undefined' && error) { %>
+                        <div class="alert alert-danger" role="alert">
+                            <strong>Atenção:</strong> <%= error %>
+                        </div>
+                    <% } %>
+
+                    <% if (typeof success !== 'undefined' && success) { %>
+                        <div class="alert alert-success" role="alert">
+                            <strong>Concluído!</strong> <%= success %>
+                        </div>
+                    <% } %>
+
+                    <!-- Validação base: o enctype deve existir e POST ativado -->
+                    <form action="/admin/upload" method="POST" enctype="multipart/form-data">
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <label for="documento_pdf" class="form-label">Arquivo de Referência (PDF) <span class="text-cyan">*</span></label>
+                                <input class="form-control" type="file" id="documento_pdf" name="documento_pdf" accept="application/pdf" required>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="titulo" class="form-label">Título da Obra <span class="text-cyan">*</span></label>
+                                <input type="text" class="form-control" id="titulo" name="titulo" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="autor" class="form-label">Autor(es) <span class="text-cyan">*</span></label>
+                                <input type="text" class="form-control" id="autor" name="autor" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="editora" class="form-label">Editora</label>
+                                <input type="text" class="form-control" id="editora" name="editora" placeholder="Ex: Mundo Cristão">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="ano_edicao" class="form-label">Ano de Publicação / Edição</label>
+                                <input type="number" class="form-control" id="ano_edicao" name="ano_edicao" placeholder="2024">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="isbn" class="form-label">Código ISBN</label>
+                                <input type="text" class="form-control" id="isbn" name="isbn" placeholder="Opcional">
+                            </div>
+
+                            <div class="col-12">
+                                <label for="categoria" class="form-label">Módulo Alvo <span class="text-cyan">*</span></label>
+                                <select class="form-select" id="categoria" name="categoria" required>
+                                    <option value="" selected disabled>Escolha a qual módulo este conhecimento pertence...</option>
+                                    <option value="TEOS">TEOS (Módulo Teológico)</option>
+                                    <option value="LEX">LEX (Módulo Jurídico)</option>
+                                    <option value="GROWTH">GROWTH (Marketing/Estratégia)</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="descricao" class="form-label">Resumo e Diretrizes de Foco para IA</label>
+                                <textarea class="form-control" id="descricao" name="descricao" rows="3"></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="palavras_chave" class="form-label">Palavras-chave / Tags</label>
+                                <input type="text" class="form-control" id="palavras_chave" name="palavras_chave" placeholder="Ex: exegese, apologia, jurisprudência (separado por vírgulas)">
+                            </div>
+
+                            <div class="col-12 mt-5 text-center">
+                                <button type="submit" class="btn-ai w-100">
+                                    Processar Base de Erudição com IA
+                                </button>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <%- include('partials/footer') %>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

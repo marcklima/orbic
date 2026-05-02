@@ -1,0 +1,75 @@
+/* =========================================================================
+   UPGRADE THEME SCOPE - CSS Isolado
+   ========================================================================= */
+
+.upgrade-theme-scope {
+    /* Variáveis exclusivas do Upgrade */
+    --bg-upgrade: #ffffff;
+    --text-upgrade: #1a1a1a;
+    --brand-upgrade: #ff5500;
+    --border-upgrade: #e0e0e0;
+
+    background-color: var(--bg-upgrade);
+    color: var(--text-upgrade);
+    font-family: 'Helvetica Neue', Arial, sans-serif; /* Fonte diferente */
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.upgrade-theme-scope .upgrade-header {
+    background-color: var(--bg-upgrade);
+    border-bottom: 1px solid var(--border-upgrade);
+    padding: 20px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.upgrade-theme-scope .upgrade-header h1 {
+    font-size: 1.5rem;
+    color: var(--brand-upgrade);
+    margin: 0;
+}
+
+.upgrade-theme-scope .upgrade-nav a {
+    color: var(--text-upgrade);
+    text-decoration: none;
+    margin-left: 20px;
+    font-weight: bold;
+}
+
+.upgrade-theme-scope .upgrade-nav a:hover {
+    color: var(--brand-upgrade);
+}
+
+.upgrade-theme-scope .upgrade-container {
+    padding: 50px 5%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.upgrade-theme-scope .upgrade-card {
+    background: #fff;
+    border: 1px solid var(--border-upgrade);
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    margin-top: 30px;
+}
+
+.upgrade-theme-scope .upgrade-btn {
+    background-color: var(--brand-upgrade);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.upgrade-theme-scope .upgrade-btn:hover {
+    background-color: #cc4400;
+}

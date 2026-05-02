@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Orbic | Suporte Técnico</title>
+    <link rel="stylesheet" href="/css/main.css"> <!-- Seu CSS original -->
+    <style>
+        /* Estilos específicos para o dashboard de chamados seguindo o padrão Hostinger/Cyber */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            transition: 0.3s;
+            margin-bottom: 20px;
+        }
+        .glass-card:hover {
+            border-color: #00f2ff;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        .status-active { background: #00B67A; color: white; }
+        
+        .container {
+            padding: 100px 10%;
+        }
+        
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        .header-glass {
+            margin-bottom: 40px;
+        }
+        .cyan-neon { color: var(--primary); }
+        .space-grotesk { font-family: 'Space Grotesk', sans-serif; }
+        .inter-font { font-family: 'Inter', sans-serif; }
+        .btn-primary {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: var(--primary);
+            color: #000;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 0 15px var(--primary);
+        }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        th { color: var(--primary); }
+    </style>
+</head>
+<body class="tech-bg"> <!-- Use a classe de fundo do seu projeto -->
+
+    <div id="cursor"></div> <!-- Seu cursor tecnológico -->
+    <div id="cursor-dot"></div>
+
+    <main class="container">
+        <header class="header-glass">
+            <h1 class="space-grotesk">Central de Chamados</h1>
+            <p>Olá, <%= user.nome %> [<%= user.empresa %>]</p>
+            <br>
+            <a href="/" style="color: var(--text-dim); text-decoration: none;">← Voltar para Orbic</a>
+        </header>
+
+        <section class="grid-layout mt-4">
+            <!-- Bloco de Ação Rápida -->
+            <div class="glass-card">
+                <h3 class="cyan-neon">Novo Atendimento</h3>
+                <p>Abra uma solicitação remota ou inloco.</p>
+                <a href="/suporte/novo" class="btn-primary">Abrir Chamado</a>
+            </div>
+
+            <!-- Bloco Zents (Condicional) -->
+            <% if (user.empresa === 'Zents') { %>
+            <div class="glass-card border-purple" style="border-color: #7000ff;">
+                <h3 style="color: #7000ff;">Painel Dev Sérgio</h3>
+                <p>Status de desenvolvimento e bugs.</p>
+                <br>
+                <span class="status-badge" style="border: 1px solid #7000ff;">Exclusivo Zents</span>
+            </div>
+            <% } %>
+
+            <!-- Lista de Chamados Ativos (Mock) -->
+            <div class="glass-card full-width">
+                <h3 class="inter-font">Histórico Recente</h3>
+                <table class="w-full mt-2 text-left">
+                    <thead>
+                        <tr class="border-b border-gray-700">
+                            <th>ID</th>
+                            <th>Tipo</th>
+                            <th>Status</th>
+                            <th>Agendamento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#1024</td>
+                            <td>Remoto</td>
+                            <td><span class="status-badge status-active">Em Atendimento</span></td>
+                            <td>Hoje - 14:00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="/js/main.js"></script> <!-- Seu script de cursor e animacoes -->
+</body>
+</html>

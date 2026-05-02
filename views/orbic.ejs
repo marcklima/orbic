@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORBIC | Tecnologia & Inovação</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+    <div id="cursor"></div>
+    <div id="cursor-dot"></div>
+
+    <%- include('partials/navbar') %>
+
+    <header>
+        <h1 data-reveal>ORBIC CORE</h1>
+        <p class="subtitle" data-reveal>Engenharia de inteligência e hardware disruptivo para o próximo nível humano.</p>
+    </header>
+
+    <section class="featured-intellect" id="intellect" data-reveal>
+        <div class="intellect-container">
+            <div class="intellect-info">
+                <span style="color: var(--primary); font-weight: bold; letter-spacing: 2px;">IA DE NICHO</span>
+                <h2>Orbic Intellect</h2>
+                <p>Muito mais que um chat. Um ecossistema de inteligência alimentado por curadorias especializadas. Transforme PDFs, livros e documentos em consultores estratégicos 24/7.</p>
+                
+                <div class="modules-list">
+                    <div class="module-item">LEX (Direito)</div>
+                    <div class="module-item">TEOS (Teologia)</div>
+                    <div class="module-item">MENTOR (Autoajuda)</div>
+                    <div class="module-item">GROWTH (Marketing)</div>
+                </div>
+
+                <div class="btn-group">
+                    <a href="#" class="btn btn-buy">Adquirir Agora</a>
+                    <a href="#" class="btn btn-more">Saiba Mais</a>
+                </div>
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <div style="width: 100%; height: 300px; border: 1px solid var(--primary); display: flex; align-items: center; justify-content: center; background: radial-gradient(var(--primary), transparent 70%); opacity: 0.2;">
+                    <span style="color: #fff">INTERFACE PREVIEW</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="projects">
+        <div class="card" data-reveal>
+            <h3 style="color: var(--primary)">Hubimb</h3>
+            <p>A central modular de serviços digitais. Onde cada serviço da Orbic se conecta para entregar uma experiência fluida de gestão e tecnologia.</p>
+        </div>
+        <div class="card" data-reveal>
+            <h3 style="color: var(--primary)">Video Book</h3>
+            <p>O hardware que redefine o aprendizado. Experiência tátil com conteúdo dinâmico em vídeo integrado, focado em manuais técnicos e educação de alta retenção.</p>
+        </div>
+    </section>
+
+    <%- include('partials/footer') %>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

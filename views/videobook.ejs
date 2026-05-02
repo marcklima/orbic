@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbic Video Book | A Evolução do Hardware Educacional</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+    <div id="cursor"></div>
+    <div id="cursor-dot"></div>
+
+    <%- include('partials/navbar') %>
+
+    <section class="hero-device">
+        <div class="hero-content" data-reveal>
+            <p>O FIM DAS PÁGINAS ESTÁTICAS</p>
+            <h1>Video Book:<br>O Futuro é Tátil.</h1>
+            <p>Imagine um manual técnico onde o diagrama se move. Um livro de Teologia onde o mapa bíblico é dinâmico. Conheça o hardware que une o papel digital ao vídeo de alta definição.</p>
+            <a href="#encomenda" class="btn-buy">Reservar Unidade</a>
+        </div>
+
+        <div class="device-mockup" data-reveal>
+            <div class="device-frame">
+                <div class="screen-content">
+                    <div class="video-placeholder">
+                        <div style="width: 40px; height: 40px; border: 2px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: spin 1s linear infinite;"></div>
+                    </div>
+                    <h4 style="margin-bottom: 10px; font-family: 'Space Grotesk';">Capítulo 04: Injeção Eletrônica</h4>
+                    <p style="font-size: 0.7rem; color: #666;">Observe o fluxo de combustível no loop acima. O Video Book sincroniza a explicação textual com a demonstração visual instantânea.</p>
+                    <div style="margin-top: auto; height: 4px; background: var(--primary); width: 60%; border-radius: 2px;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="feature-card" data-reveal>
+            <h3>Retenção de 90%</h3>
+            <p>Estudos provam que o cérebro processa imagens em movimento 60.000 vezes mais rápido que textos. O Video Book une os dois mundos.</p>
+        </div>
+        <div class="feature-card" data-reveal>
+            <h3>Atualização Remota</h3>
+            <p>Diferente do livro impresso, o conteúdo do Video Book é atualizado via Wi-Fi através do ecossistema Orbic Hubimb.</p>
+        </div>
+        <div class="feature-card" data-reveal>
+            <h3>Foco Total</h3>
+            <p>Sem notificações, sem redes sociais. Um dispositivo dedicado exclusivamente ao aprendizado profundo e técnico.</p>
+        </div>
+    </section>
+
+    <section class="specs" data-reveal>
+        <h2>Especificações Técnicas</h2>
+        <table class="spec-table">
+            <tr><td>Display</td><td>E-Ink High Definition + Video Layer</td></tr>
+            <tr><td>Conectividade</td><td>Wi-Fi 6 / Bluetooth 5.2</td></tr>
+            <tr><td>Armazenamento</td><td>64GB (Suporta 5.000+ Video Books)</td></tr>
+            <tr><td>Bateria</td><td>Até 15 dias de uso contínuo</td></tr>
+            <tr><td>Sincronização</td><td>Orbic Intellect AI Cloud</td></tr>
+        </table>
+    </section>
+
+    <section class="pre-order" id="encomenda" data-reveal>
+        <h2 style="font-family: 'Space Grotesk'; font-size: 2.5rem; margin-bottom: 20px;">Entre na Lista de Espera</h2>
+        <p style="color: var(--text-dim); margin-bottom: 40px;">O primeiro lote do Orbic Video Book será exclusivo para parceiros e assinantes Intellect Master.</p>
+        <a href="#" class="btn-buy">Quero ser avisado no lançamento</a>
+    </section>
+
+    <%- include('partials/footer') %>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

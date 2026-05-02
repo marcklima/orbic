@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORBIC | Intellect Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        :root { --primary: #00f2ff; --bg-app: #050505; --text-app: #fff; }
+        .theme-light { --bg-app: #f5f5f5; --text-app: #222; }
+        
+        .side-btn { width: 100%; background: transparent; border: none; color: inherit; text-align: left; padding: 10px; font-size: 0.8rem; cursor: pointer; opacity: 0.7; }
+        .side-btn:hover { opacity: 1; background: rgba(255,255,255,0.05); }
+
+        .history-item { display: flex; justify-content: space-between; padding: 10px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; margin-bottom: 5px; }
+        .history-item:hover { background: rgba(255,255,255,0.05); }
+        .item-actions { display: none; gap: 5px; font-size: 0.7rem; }
+        .history-item:hover .item-actions { display: flex; }
+
+        .top-icon { background: transparent; border: none; font-size: 1.2rem; cursor: pointer; opacity: 0.6; }
+        .top-icon:hover { opacity: 1; }
+
+        @media (max-width: 768px) {
+            #sidebar { display: none; }
+            #chat-window { padding: 20px 5%; }
+        }
+        
+        /* Ajuste do scrollbar para manter estetica */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div id="cursor"></div>
+    <div id="cursor-dot"></div>
+
+    <%- include('partials/navbar') %>
+
+    <div id="app-wrapper" class="theme-dark" style="display: flex; height: 100vh; padding-top: 70px; background: var(--bg-app); color: var(--text-app); transition: 0.3s;">
+        
+        <aside id="sidebar" style="width: 280px; background: rgba(0,0,0,0.3); border-right: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; transition: 0.3s;">
+            <div style="padding: 20px;">
+                <button class="btn-new-chat" style="width: 100%; padding: 12px; background: transparent; border: 1px dashed var(--primary); color: var(--primary); border-radius: 8px; cursor: pointer; font-weight: bold;">+ Nova Conversa</button>
+            </div>
+            
+            <div id="history-list" style="flex: 1; overflow-y: auto; padding: 0 15px;">
+                <p style="font-size: 0.7rem; color: #555; margin-bottom: 10px; text-transform: uppercase;">Recentes</p>
+                <div class="history-item">
+                    <span>Exegese Romanos 8</span>
+                    <div class="item-actions">📌 📂 🗑️</div>
+                </div>
+            </div>
+
+            <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
+                <button onclick="toggleTheme()" class="side-btn" style="color: var(--text-app);">🌓 Alternar Tema</button>
+                <button onclick="changeFontSize(1)" class="side-btn" style="color: var(--text-app);">A+ Tamanho Fonte</button>
+                <button onclick="changeFontSize(-1)" class="side-btn" style="color: var(--text-app);">A- Tamanho Fonte</button>
+                <button class="side-btn" style="color: var(--text-app);">⚙️ Configurações</button>
+                <button class="side-btn" style="color: var(--text-app);">❓ Ajuda</button>
+            </div>
+        </aside>
+
+        <main style="flex: 1; display: flex; flex-direction: column; position: relative;">
+            
+            <header style="padding: 10px 25px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                <div id="chat-info">
+                    <h4 id="current-chat-title" style="font-size: 0.9rem;">Nova Conversa</h4>
+                    <span style="font-size: 0.7rem; color: var(--primary);">Ollama: Llama 3 Ativo</span>
+                </div>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <button class="top-icon" title="Compartilhar">🔗</button>
+                    <button class="top-icon" title="Arquivar">📂</button>
+                    <button class="top-icon" title="Excluir">🗑️</button>
+                    <div id="user-avatar" style="width: 35px; height: 35px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold;">ML</div>
+                </div>
+            </header>
+
+            <div id="chat-window" style="flex: 1; overflow-y: auto; padding: 40px 15%; font-size: 1rem; display: flex; flex-direction: column; gap: 20px;">
+                <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; max-width: 80%; align-self: flex-start; border-left: 2px solid var(--primary);">
+                    Olá! Sou o Intellect. Como posso ajudar com seu acervo hoje?
+                </div>
+            </div>
+
+            <div style="padding: 20px 15%;">
+                <div style="position: relative; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); padding: 10px;">
+                    <textarea id="user-input" rows="1" placeholder="Pergunte ao Intellect..." style="width: 100%; background: transparent; border: none; color: var(--text-app); outline: none; padding: 10px; resize: none;" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }"></textarea>
+                    <button onclick="sendMessage()" style="position: absolute; right: 10px; bottom: 10px; background: var(--primary); border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; color: #000;">Enviar</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+    <script>
+        let currentFontSize = 16;
+
+        function toggleTheme() {
+            document.getElementById('app-wrapper').classList.toggle('theme-light');
+            
+            // Adjust input bg specifically for light theme legibility
+            const inputStyle = document.querySelector('#user-input').style;
+            if (document.getElementById('app-wrapper').classList.contains('theme-light')) {
+                inputStyle.color = '#222';
+            } else {
+                inputStyle.color = '#fff';
+            }
+        }
+
+        function changeFontSize(delta) {
+            currentFontSize += delta;
+            document.getElementById('chat-window').style.fontSize = currentFontSize + 'px';
+        }
+
+        async function sendMessage() {
+            const input = document.querySelector('#user-input');
+            const window = document.querySelector('#chat-window');
+            const question = input.value.trim();
+            if (!question) return;
+
+            // Adiciona mensagem do usuário na tela
+            window.innerHTML += `<div style="background: rgba(0, 242, 255, 0.2); padding: 15px; border-radius: 8px; max-width: 80%; align-self: flex-end; border-right: 2px solid var(--primary);">${question.replace(/\n/g, '<br>')}</div>`;
+            
+            input.value = '';
+            window.scrollTop = window.scrollHeight;
+
+            // Adiciona indicador de 'digitando' / 'pesquisando'
+            const msgId = 'msg-' + Date.now();
+            window.innerHTML += `<div id="${msgId}" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; max-width: 80%; align-self: flex-start; border-left: 2px solid var(--primary);"><span class="typing-effect" style="color: var(--primary);">O Intellect está consultando o acervo... 🧠⏳</span></div>`;
+            window.scrollTop = window.scrollHeight;
+
+            try {
+                // Alvo na rota do backend recém configurada
+                const response = await fetch('/chat/pergunta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message: question,
+                        id_livro: null // Futuramente você pode passar um ID aqui caso deseje filtrar a busca no Supabase
+                    })
+                });
+                const data = await response.json();
+                
+                // Substitui o indicador 'digitando' pela resposta do bot
+                document.getElementById(msgId).innerHTML = data.reply ? data.reply.replace(/\n/g, '<br>') : "Resposta não compreendida.";
+                window.scrollTop = window.scrollHeight;
+            } catch (err) {
+                console.error("Erro ao falar com a IA");
+                document.getElementById(msgId).innerHTML = `<span style="color: #ff4d4d; border-left: 2px solid red; display:block; padding-left: 5px;">Houve um erro de conexão com o núcleo Intellect. Tente novamente!</span>`;
+                window.scrollTop = window.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
