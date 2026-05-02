@@ -62,9 +62,19 @@ app.get('/auth/callback', async (req, res) => {
                 empresa = 'Zents';
                 role = 'zents';
             }
-            if (email.includes('admin') || email === 'marcklima@orbic.com') {
+            if (email.includes('admin') || email === 'marcklima@orbic.com' || email === 'bainautec@gmail.com') {
                 role = 'admin';
             }
+
+            // Upsert (Sincroniza) o usuário no banco de dados na tabela perfis_usuarios
+            const { error: syncError } = await supabase.from('perfis_usuarios').upsert({
+                id: data.user.id,
+                nome_completo: data.user.user_metadata.full_name || "Usuário",
+                nivel_acesso: role,
+                ultima_atividade: new Date()
+            }, { onConflict: 'id' });
+            
+            if (syncError) console.error("Erro ao sincronizar perfil:", syncError.message);
 
             req.session.user = {
                 id: data.user.id,
@@ -106,20 +116,35 @@ const upload = multer({ dest: 'uploads/' });
 
 app.post('/api/chamados', upload.array('anexos', 3), async (req, res) => {
     try {
+        if (!req.session.user) {
+            return res.status(401).send("Acesso Negado. Faça login.");
+        }
+
         const { tipo, categoria, titulo, descricao, impacto, urgencia, prioridade } = req.body;
-        console.log(`[ITIL Zents] Chamado Aberto: ${prioridade} - ${titulo}`);
         
-        // Simulação de Exponential Backoff se fosse conectar com a IA do Intellect
-        // let attempt = 0; ...
-        
-        // Simular o disparo de E-mail de confirmação do chamado:
+        // Salvando no banco de dados Supabase
+        const { error: dbError } = await supabase.from('chamados_itil').insert({
+            usuario_id: req.session.user.id,
+            tipo: tipo,
+            categoria: categoria,
+            titulo: titulo,
+            descricao: descricao,
+            impacto: parseInt(impacto),
+            urgencia: parseInt(urgencia),
+            prioridade: prioridade,
+            status: 'aberto'
+        });
+
+        if (dbError) throw dbError;
+
+        console.log(`[ITIL Zents] Chamado Salvo no BD: ${prioridade} - ${titulo}`);
         console.log(`[E-MAIL SIMULADO] Disparando e-mail para dev@orbic.com -> Novo chamado ${prioridade} criado com sucesso.`);
 
         // Após salvar, redireciona de volta com mensagem de sucesso
         res.redirect('/upgrade/chamados?success=true');
     } catch (error) {
-        console.error(error);
-        res.status(500).send("Erro ao registrar chamado.");
+        console.error("Erro ao inserir chamado no BD:", error);
+        res.status(500).send("Erro ao registrar chamado no banco de dados.");
     }
 });
 
