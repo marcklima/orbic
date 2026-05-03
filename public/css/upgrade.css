@@ -6,8 +6,8 @@
     /* Variáveis exclusivas do Upgrade */
     --bg-upgrade: #080808;
     --text-upgrade: #e0e0e0;
-    --brand-upgrade: #7000ff; /* Mudamos pra roxo para combinar com Zents */
-    --border-upgrade: rgba(112, 0, 255, 0.3);
+    --brand-upgrade: #00ff88;
+    --border-upgrade: rgba(0, 255, 136, 0.3);
     --glass-bg: rgba(20, 20, 25, 0.4);
 
     background-color: var(--bg-upgrade);
@@ -94,7 +94,7 @@
 
 .upgrade-theme-scope .form-control:focus {
     border-color: var(--brand-upgrade);
-    box-shadow: 0 0 15px rgba(112, 0, 255, 0.2);
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
 }
 
 /* Tooltip (Popups de Ajuda) */
@@ -160,7 +160,7 @@
 
 .upgrade-theme-scope .drop-zone:hover, .upgrade-theme-scope .drop-zone.dragover {
     border-color: var(--brand-upgrade);
-    background: rgba(112, 0, 255, 0.05);
+    background: rgba(0, 255, 136, 0.05);
     color: #fff;
 }
 
@@ -182,7 +182,7 @@
 }
 
 .upgrade-theme-scope .btn-submit:hover {
-    background-color: #8a2be2;
+    background-color: #1db954;
     box-shadow: 0 0 20px var(--brand-upgrade);
 }
 

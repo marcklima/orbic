@@ -1,7 +1,7 @@
 :root {
     --bg: #050505;
-    --primary: #00f2ff;
-    --accent: #7000ff;
+    --primary: #00ff88;
+    --accent: #1db954;
     --text: #ffffff;
     --text-dim: #888;
     --glass: rgba(255, 255, 255, 0.03);
@@ -13,7 +13,6 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    cursor: none;
     scroll-behavior: smooth;
 }
 

@@ -2,126 +2,94 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Orbic | Suporte Técnico</title>
-    <link rel="stylesheet" href="/css/main.css"> <!-- Seu CSS original -->
+    <title>Orbic | Portal do Cliente</title>
+    <link rel="stylesheet" href="/css/main.css">
     <style>
-        /* Estilos específicos para o dashboard de chamados seguindo o padrão Hostinger/Cyber */
+        .portal-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(0, 242, 255, 0.2);
+            border: 1px solid rgba(0, 255, 136, 0.2);
             border-radius: 15px;
-            padding: 20px;
+            padding: 40px;
             transition: 0.3s;
-            margin-bottom: 20px;
+            text-align: center;
         }
         .glass-card:hover {
-            border-color: #00f2ff;
-            box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+            transform: translateY(-5px);
         }
-        .status-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            text-transform: uppercase;
+        .container-portal {
+            padding: 120px 10%;
+            min-height: 80vh;
         }
-        .status-active { background: #00B67A; color: white; }
-        
-        .container {
-            padding: 100px 10%;
-        }
-        
         .grid-layout {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
         }
-        .full-width {
-            grid-column: 1 / -1;
-        }
-        .header-glass {
-            margin-bottom: 40px;
-        }
-        .cyan-neon { color: var(--primary); }
-        .space-grotesk { font-family: 'Space Grotesk', sans-serif; }
-        .inter-font { font-family: 'Inter', sans-serif; }
-        .btn-primary {
+        .btn-portal {
             display: inline-block;
-            margin-top: 15px;
-            padding: 10px 20px;
+            margin-top: 25px;
+            padding: 15px 30px;
             background: var(--primary);
             color: #000;
             text-decoration: none;
-            font-weight: bold;
-            border-radius: 4px;
+            font-weight: 800;
+            border-radius: 6px;
+            text-transform: uppercase;
             transition: 0.3s;
         }
-        .btn-primary:hover {
-            box-shadow: 0 0 15px var(--primary);
+        .btn-portal:hover {
+            box-shadow: 0 0 20px var(--primary);
+            transform: scale(1.05);
         }
-        
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-        th { color: var(--primary); }
+        .icon-large {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
     </style>
 </head>
-<body class="tech-bg"> <!-- Use a classe de fundo do seu projeto -->
+<body class="tech-bg">
 
-    <div id="cursor"></div> <!-- Seu cursor tecnológico -->
-    <div id="cursor-dot"></div>
+    <%- include('partials/navbar') %>
 
-    <main class="container">
-        <header class="header-glass">
-            <h1 class="space-grotesk">Central de Chamados</h1>
-            <p>Olá, <%= user.nome %> [<%= user.empresa %>]</p>
-            <br>
-            <a href="/" style="color: var(--text-dim); text-decoration: none;">← Voltar para Orbic</a>
+    <main class="container-portal">
+        <header class="portal-header">
+            <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 3rem; margin-bottom: 10px;">Portal do Cliente</h1>
+            <p style="color: #aaa; font-size: 1.1rem;">Bem-vindo(a), <strong style="color: var(--primary);"><%= user.nome %></strong>. Como podemos ajudar hoje?</p>
         </header>
 
-        <section class="grid-layout mt-4">
-            <!-- Bloco de Ação Rápida -->
+        <section class="grid-layout">
+            <!-- Bloco de Chamados ITIL -->
             <div class="glass-card">
-                <h3 class="cyan-neon">Novo Atendimento</h3>
-                <p>Abra uma solicitação remota ou inloco.</p>
-                <a href="/upgrade/chamados" class="btn-primary">Abrir Chamado</a>
+                <div class="icon-large">🎧</div>
+                <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; margin-bottom: 10px;">Suporte & Chamados</h3>
+                <p style="color: #888;">Abra novas solicitações técnicas, agende suportes remotos e acompanhe o andamento do seu histórico.</p>
+                <a href="/upgrade/chamados" class="btn-portal">Acessar Dashboard</a>
             </div>
 
-            <!-- Bloco Zents (Condicional RBAC) -->
+            <!-- Bloco Zents (Condicional) -->
             <% if (user && (user.role === 'zents' || user.role === 'admin' || user.empresa === 'Zents')) { %>
-            <div class="glass-card border-purple" style="border-color: #7000ff;">
-                <h3 style="color: #7000ff;">Painel de chamados zents</h3>
-                <p>Gestão de tarefas e report de erros do webapp da Zents.</p>
-                <a href="/upgrade/chamados" class="btn-primary" style="background: #7000ff; color: #fff; margin-bottom: 15px;">Acessar Requerimentos</a>
-                <br>
-                <span class="status-badge" style="border: 1px solid #7000ff; color: #7000ff;">Exclusivo Zents</span>
+            <div class="glass-card" style="border-color: #1db954;">
+                <div class="icon-large" style="color: #1db954;">⚙️</div>
+                <h3 style="color: #1db954; font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; margin-bottom: 10px;">Painel Zents (Gestão)</h3>
+                <p style="color: #888;">Gestão exclusiva de tarefas corporativas e integrações do sistema Zents.</p>
+                <a href="/upgrade/gestao" class="btn-portal" style="background: #1db954; color: #000;">Acessar Gestão</a>
             </div>
             <% } %>
-
-            <!-- Lista de Chamados Ativos (Mock) -->
-            <div class="glass-card full-width" style="overflow-x: auto;">
-                <h3 class="inter-font">Histórico Recente</h3>
-                <table class="w-full mt-2 text-left">
-                    <thead>
-                        <tr class="border-b border-gray-700">
-                            <th>ID</th>
-                            <th>Tipo</th>
-                            <th>Status</th>
-                            <th>Agendamento</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>#1024</td>
-                            <td>Remoto</td>
-                            <td><span class="status-badge status-active">Em Atendimento</span></td>
-                            <td>Hoje - 14:00</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
         </section>
     </main>
 
-    <script src="/js/main.js"></script> <!-- Seu script de cursor e animacoes -->
+    <%- include('partials/footer') %>
+
+    <script src="/js/main.js"></script>
 </body>
 </html>

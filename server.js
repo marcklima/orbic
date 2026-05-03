@@ -73,7 +73,10 @@ app.get('/auth/callback', async (req, res) => {
             let empresa = 'Cliente';
             let role = 'cliente';
             
-            if (email.includes('@zents') || email === 'dev@orbic.com') {
+            if (email === 'suporte.vidanca@gmail.com' || email === 'palavraevidaonline@gmail.com') {
+                role = 'admin';
+                empresa = 'Zents';
+            } else if (email.includes('@zents') || email === 'dev@orbic.com') {
                 empresa = 'Zents';
                 role = 'zents';
             }
@@ -165,6 +168,8 @@ app.post('/api/chamados', upload.array('anexos', 3), async (req, res) => {
 
         const { tipo, categoria, titulo, descricao, impacto, urgencia, prioridade } = req.body;
         
+        const empresa_destino = req.session.user.empresa === 'Zents' ? 'Zents' : 'Orbic';
+        
         // Salvando no banco de dados Supabase
         const { error: dbError } = await supabase.from('chamados_itil').insert({
             usuario_id: req.session.user.id,
@@ -175,7 +180,8 @@ app.post('/api/chamados', upload.array('anexos', 3), async (req, res) => {
             impacto: parseInt(impacto),
             urgencia: parseInt(urgencia),
             prioridade: prioridade,
-            status: 'recebido'
+            status: 'recebido',
+            empresa_destino: empresa_destino
         });
 
         if (dbError) throw dbError;
@@ -188,6 +194,160 @@ app.post('/api/chamados', upload.array('anexos', 3), async (req, res) => {
     } catch (error) {
         console.error("Erro ao inserir chamado no BD:", error);
         res.status(500).send("Erro ao registrar chamado no banco de dados.");
+    }
+});
+
+// ============================================
+// PAINEL DE GESTÃO (DEV / ADMIN) E CHAT ITIL
+// ============================================
+
+app.get('/upgrade/gestao', requireAuth, async (req, res) => {
+    // Apenas admins podem acessar
+    if (req.session.user.role !== 'admin') {
+        return res.status(403).send("Acesso Negado. Esta página é exclusiva para a equipe técnica.");
+    }
+
+    try {
+        const { data: chamados, error } = await supabase
+            .from('chamados_itil')
+            .select('*')
+            .order('criado_em', { ascending: false });
+            
+        if (error) {
+            console.error("ERRO SUPABASE (Gestao):", error);
+            throw error;
+        }
+
+        // Busca manual de perfis
+        const userIds = [...new Set(chamados.map(c => c.usuario_id))];
+        let mapNomes = {};
+        if (userIds.length > 0) {
+            const { data: perfis } = await supabase.from('perfis_usuarios').select('id, nome_completo').in('id', userIds);
+            if (perfis) perfis.forEach(p => mapNomes[p.id] = p.nome_completo);
+        }
+
+        let chamadosFiltrados = chamados.map(c => {
+            c.nome_requerente = mapNomes[c.usuario_id] || 'Usuário';
+            return c;
+        });
+
+        // O Dev da Zents só vê Zents
+        if (req.session.user.role === 'zents') {
+            chamadosFiltrados = chamadosFiltrados.filter(c => c.empresa_destino === 'Zents');
+        }
+
+        res.render('upgrade/gestao', { 
+            layout: false, 
+            user: req.session.user, 
+            chamados: chamadosFiltrados 
+        });
+    } catch (err) {
+        console.error("Erro ao carregar painel de gestão:", err);
+        res.status(500).send("Erro ao carregar o painel.");
+    }
+});
+
+// API: Retornar detalhes de um chamado + interações (Chat)
+app.get('/api/chamados/:id', requireAuth, async (req, res) => {
+    try {
+        const chamadoId = req.params.id;
+        
+        // Busca chamado
+        const { data: chamado, error: erroChamado } = await supabase
+            .from('chamados_itil')
+            .select('*')
+            .eq('id', chamadoId)
+            .single();
+            
+        if (erroChamado) {
+            console.error("ERRO SUPABASE (API Chamado):", erroChamado);
+            throw erroChamado;
+        }
+
+        // Verifica permissão (Admin pode ver tudo, Cliente só vê o seu)
+        if (req.session.user.role !== 'admin' && chamado.usuario_id !== req.session.user.id) {
+            return res.status(403).json({ error: "Acesso negado a este chamado." });
+        }
+
+        // Busca Interações
+        const { data: interacoes, error: erroInteracoes } = await supabase
+            .from('chamados_interacoes')
+            .select('*')
+            .eq('chamado_id', chamadoId)
+            .order('criado_em', { ascending: true });
+
+        if (erroInteracoes) {
+             console.error("ERRO SUPABASE (API Interacoes):", erroInteracoes);
+        }
+
+        // Busca manual de perfis para interações
+        if (interacoes && interacoes.length > 0) {
+            const intUserIds = [...new Set(interacoes.map(i => i.usuario_id))];
+            const { data: intPerfis } = await supabase.from('perfis_usuarios').select('id, nome_completo, nivel_acesso').in('id', intUserIds);
+            const mapInt = {};
+            if (intPerfis) intPerfis.forEach(p => mapInt[p.id] = p);
+            
+            interacoes.forEach(i => {
+                i.nome_autor = mapInt[i.usuario_id]?.nome_completo || 'Usuário';
+                i.is_admin = (mapInt[i.usuario_id]?.nivel_acesso === 'admin' || mapInt[i.usuario_id]?.nivel_acesso === 'zents');
+            });
+        }
+        
+        // Adiciona o nome do autor principal no chamado
+        const { data: autorChamado } = await supabase.from('perfis_usuarios').select('nome_completo').eq('id', chamado.usuario_id).single();
+        chamado.nome_requerente = autorChamado ? autorChamado.nome_completo : 'Usuário';
+
+        res.json({ chamado, interacoes: interacoes || [] });
+    } catch (err) {
+        console.error("Erro na API de Chamado:", err);
+        res.status(500).json({ error: "Erro interno no servidor." });
+    }
+});
+
+// API: Atualizar Status do Chamado
+app.post('/api/chamados/:id/status', requireAuth, async (req, res) => {
+    try {
+        if (req.session.user.role !== 'admin') return res.status(403).json({ error: "Acesso Negado." });
+        
+        const chamadoId = req.params.id;
+        const { status } = req.body;
+        
+        const { error } = await supabase
+            .from('chamados_itil')
+            .update({ status: status })
+            .eq('id', chamadoId);
+            
+        if (error) throw error;
+        res.json({ success: true, status });
+    } catch (err) {
+        res.status(500).json({ error: "Erro ao atualizar status" });
+    }
+});
+
+// API: Enviar Mensagem no Chat do Chamado
+app.post('/api/chamados/:id/interacao', requireAuth, async (req, res) => {
+    try {
+        const chamadoId = req.params.id;
+        const { mensagem } = req.body;
+        
+        const { error } = await supabase
+            .from('chamados_interacoes')
+            .insert({
+                chamado_id: chamadoId,
+                usuario_id: req.session.user.id,
+                mensagem: mensagem,
+                tipo: 'publico'
+            });
+            
+        if (error) throw error;
+        
+        // Se for admin mandando, e o status era recebido, muda pra 'em_andamento'
+        // Se for admin pedindo info, pode mudar para 'pendente_cliente' 
+        // Por simplicidade, vamos deixar a atualização de status manual por enquanto
+        
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: "Erro ao enviar mensagem" });
     }
 });
 

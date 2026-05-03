@@ -64,7 +64,7 @@
 
         /* Mapeamento visual Intuitivo dos Status */
         .status-recebido { background: rgba(255, 255, 255, 0.1); color: #ccc; border: 1px solid #aaa; }
-        .status-em_andamento { background: rgba(0, 242, 255, 0.1); color: #00f2ff; border: 1px solid #00f2ff; }
+        .status-em_andamento { background: rgba(255, 255, 255, 0.2); color: #fff; border: 1px solid #fff; }
         .status-pendente_cliente { background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid #ffcc00; }
         .status-atrasado { background: rgba(255, 51, 102, 0.1); color: #ff3366; border: 1px solid #ff3366; }
         .status-resolvido { background: rgba(51, 170, 51, 0.1); color: #33aa33; border: 1px solid #33aa33; }
@@ -148,16 +148,11 @@
                     <input type="hidden" id="input-prioridade" name="prioridade" value="P4">
                 </div>
 
-                <!-- Google Calendar Booking Section -->
+                <!-- Agenda Nativa Simples -->
                 <div class="form-group" style="margin-top: 30px;">
-                    <label class="form-label">AGENDAR REUNIÃO / SUPORTE REMOTO (Google Calendar)</label>
-                    <p style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">Se o seu problema requer que o técnico acesse sua máquina, escolha um horário na agenda oficial abaixo antes de enviar o chamado.</p>
-                    
-                    <div style="width: 100%; height: 350px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(0, 242, 255, 0.2); background: #fff;">
-                        <!-- Substitua o link abaixo pelo link real do Agendamento do seu Google Agenda -->
-                        <iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0... (Exemplo Placehorlder)" style="border: 0" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
-                    </div>
-                    <small style="color: var(--brand-upgrade); display: block; margin-top: 5px;">*Após escolher o horário no calendário acima, não esqueça de clicar no botão Registrar Chamado abaixo.*</small>
+                    <label class="form-label">SUGESTÃO DE HORÁRIO (Opcional)</label>
+                    <p style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">Se o problema requer acesso à sua máquina (acesso remoto), escolha um dia e hora que você estará disponível.</p>
+                    <input type="datetime-local" name="data_agendamento" class="form-control">
                 </div>
 
                 <button type="submit" class="btn-submit" style="width: 100%; margin-top: 20px;">Registrar Chamado</button>
@@ -193,10 +188,13 @@
                             <%= chamado.descricao.substring(0, 100) %><%= chamado.descricao.length > 100 ? '...' : '' %>
                         </p>
                         
-                        <div style="display: flex; gap: 15px; font-size: 0.8rem; color: #666;">
-                            <span><strong>Data:</strong> <%= new Date(chamado.criado_em).toLocaleDateString('pt-BR') %></span>
-                            <span style="color: var(--brand-upgrade);"><strong>Prioridade:</strong> <%= chamado.prioridade %></span>
-                            <span><strong>Ref:</strong> #<%= String(chamado.id).substring(0,6) %></span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                            <div style="display: flex; gap: 15px; font-size: 0.8rem; color: #666;">
+                                <span><strong>Data:</strong> <%= new Date(chamado.criado_em).toLocaleDateString('pt-BR') %></span>
+                                <span style="color: var(--brand-upgrade);"><strong>Prioridade:</strong> <%= chamado.prioridade %></span>
+                                <span><strong>Ref:</strong> #<%= String(chamado.id).substring(0,6) %></span>
+                            </div>
+                            <button onclick="abrirChatCliente('<%= chamado.id %>', '<%= chamado.titulo %>')" style="background: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.3s;" onmouseover="this.style.background='var(--primary)'; this.style.color='#000';" onmouseout="this.style.background='transparent'; this.style.color='var(--primary)';">💬 Ver Chat</button>
                         </div>
                     </div>
                 <% }) %>
@@ -237,6 +235,118 @@
         document.getElementById('input-prioridade').value = prioridade;
     }
     calcularPrioridade();
+</script>
+
+<!-- Modal de Chat do Cliente -->
+<div id="modalChatCliente" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 2000; display: none; justify-content: center; align-items: center;">
+    <div style="background: #111; width: 90%; max-width: 600px; height: 70vh; border: 1px solid var(--primary); border-radius: 12px; display: flex; flex-direction: column;">
+        <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between;">
+            <h3 style="color: #fff;" id="chatTituloCliente">Comunicações</h3>
+            <button onclick="fecharChatCliente()" style="background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer;">×</button>
+        </div>
+        
+        <div id="areaMensagensCliente" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;">
+            <!-- Renderizado via JS -->
+        </div>
+
+        <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px;">
+            <input type="text" id="inputMsgCliente" placeholder="Escreva para o desenvolvedor..." style="flex: 1; background: #222; border: 1px solid #444; color: #fff; padding: 12px; border-radius: 6px;" onkeypress="if(event.key === 'Enter') enviarMsgCliente()">
+            <button onclick="enviarMsgCliente()" style="background: var(--primary); color: #000; border: none; padding: 0 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Enviar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let chamadoAtivoCliente = null;
+
+    async function abrirChatCliente(id, titulo) {
+        chamadoAtivoCliente = id;
+        document.getElementById('modalChatCliente').style.display = 'flex';
+        document.getElementById('chatTituloCliente').innerText = titulo;
+        document.getElementById('areaMensagensCliente').innerHTML = '<p style="color: #888; text-align: center;">Carregando...</p>';
+        
+        try {
+            const res = await fetch('/api/chamados/' + id);
+            const data = await res.json();
+            renderizarMensagens(data.interacoes);
+        } catch(e) {
+            console.error(e);
+        }
+    }
+
+    function fecharChatCliente() {
+        document.getElementById('modalChatCliente').style.display = 'none';
+        chamadoAtivoCliente = null;
+    }
+
+    function renderizarMensagens(interacoes) {
+        const area = document.getElementById('areaMensagensCliente');
+        area.innerHTML = '';
+        if(!interacoes || interacoes.length === 0) {
+            area.innerHTML = '<p style="color: #555; text-align: center; margin-top: 50px;">O desenvolvedor ainda não respondeu.</p>';
+            return;
+        }
+
+        interacoes.forEach(int => {
+            const eu = int.usuario_id === '<%= user ? user.id : "" %>';
+            const div = document.createElement('div');
+            
+            div.style.maxWidth = '80%';
+            div.style.padding = '12px 18px';
+            div.style.borderRadius = '8px';
+            div.style.lineHeight = '1.4';
+            div.style.fontSize = '0.95rem';
+
+            if (eu) {
+                div.style.alignSelf = 'flex-end';
+                div.style.background = 'rgba(0, 255, 136, 0.1)';
+                div.style.borderRight = '3px solid var(--primary)';
+                div.style.textAlign = 'right';
+            } else {
+                div.style.alignSelf = 'flex-start';
+                div.style.background = 'rgba(255,255,255,0.05)';
+                div.style.borderLeft = '3px solid #888';
+            }
+
+            const nome = int.nome_autor || 'Usuário';
+            const dataHora = new Date(int.criado_em).toLocaleString('pt-BR');
+
+            div.innerHTML = `
+                <div style="font-size: 0.75rem; color: ${eu ? '#000' : '#aaa'}; margin-bottom: 5px; opacity: 0.8;">
+                    ${eu ? 'Você' : nome} • ${dataHora}
+                </div>
+                <div>${int.mensagem}</div>
+            `;
+            area.appendChild(div);
+        });
+        area.scrollTop = area.scrollHeight;
+    }
+
+    async function enviarMsgCliente() {
+        const input = document.getElementById('inputMsgCliente');
+        const msg = input.value.trim();
+        if(!msg || !chamadoAtivoCliente) return;
+
+        input.disabled = true;
+        input.value = 'Enviando...';
+
+        try {
+            const res = await fetch('/api/chamados/' + chamadoAtivoCliente + '/interacao', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mensagem: msg })
+            });
+            if(res.ok) {
+                input.value = '';
+                abrirChatCliente(chamadoAtivoCliente, document.getElementById('chatTituloCliente').innerText);
+            }
+        } catch(e) {
+            alert('Erro ao enviar mensagem');
+        } finally {
+            input.disabled = false;
+            input.focus();
+        }
+    }
 </script>
 
 </body>

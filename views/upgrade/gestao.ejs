@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORBIC | Painel de Gestão (ITIL)</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/upgrade.css">
+    <style>
+        .gestao-container {
+            padding: 40px 5%;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header-gestao {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .filtros {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .filtros select {
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            border: 1px solid var(--primary);
+            padding: 8px 15px;
+            border-radius: 4px;
+        }
+
+        /* Layout em Kanban Simples / Tabela */
+        .chamados-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .chamado-row {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .chamado-row:hover {
+            border-color: var(--primary);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .chamado-info h4 { margin-bottom: 5px; color: #fff; font-size: 1.1rem; }
+        .chamado-info p { color: #888; font-size: 0.9rem; }
+        
+        .badge-empresa {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: #333;
+            color: #fff;
+            margin-right: 10px;
+        }
+
+        .badge-zents { background: #1db954; color: #000; }
+
+        /* Modal do Chamado (Chat) */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #111;
+            width: 90%;
+            max-width: 1000px;
+            height: 85vh;
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .modal-left {
+            width: 40%;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .modal-right {
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+            background: #0a0a0a;
+        }
+
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .msg-box {
+            max-width: 80%;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .msg-cliente {
+            background: rgba(255,255,255,0.05);
+            align-self: flex-start;
+            border-left: 3px solid #888;
+        }
+
+        .msg-dev {
+            background: rgba(0, 255, 136, 0.1);
+            align-self: flex-end;
+            border-right: 3px solid var(--primary);
+            text-align: right;
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            background: #222;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+        }
+        
+        .chat-input-area button {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 0 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn-close {
+            background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer;
+        }
+        
+        /* Status Badges para a Tabela */
+        .status-recebido { background: rgba(255, 255, 255, 0.1); color: #ccc; border: 1px solid #aaa; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;}
+        .status-em_andamento { background: rgba(255, 255, 255, 0.2); color: #fff; border: 1px solid #fff; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;}
+        .status-pendente_cliente { background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid #ffcc00; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;}
+        .status-atrasado { background: rgba(255, 51, 102, 0.1); color: #ff3366; border: 1px solid #ff3366; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;}
+        .status-resolvido { background: rgba(51, 170, 51, 0.1); color: #33aa33; border: 1px solid #33aa33; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;}
+
+    </style>
+</head>
+<body class="upgrade-theme-scope tech-bg">
+
+    <%- include('../partials/navbar') %>
+
+    <div class="gestao-container">
+        <div class="header-gestao">
+            <div>
+                <h1 style="font-family: 'Space Grotesk', sans-serif; color: var(--primary); font-size: 2.5rem;">Painel de Gestão (ITIL)</h1>
+                <p style="color: #888;">Gerencie e responda a todos os chamados abertos.</p>
+            </div>
+            <div class="filtros">
+                <select id="filtroEmpresa" onchange="filtrar()">
+                    <option value="todas">Todas as Empresas</option>
+                    <option value="Zents">Apenas Zents</option>
+                    <option value="Orbic">Apenas Orbic</option>
+                </select>
+                <select id="filtroStatus" onchange="filtrar()">
+                    <option value="todos">Todos os Status</option>
+                    <option value="recebido">Recebidos</option>
+                    <option value="em_andamento">Em Andamento</option>
+                    <option value="pendente_cliente">Aguardando Cliente</option>
+                    <option value="resolvido">Resolvidos</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="chamados-grid" id="listaChamados">
+            <% chamados.forEach(chamado => { %>
+                <div class="chamado-row item-chamado" 
+                     data-empresa="<%= chamado.empresa_destino %>" 
+                     data-status="<%= chamado.status %>"
+                     onclick="abrirChamado('<%= chamado.id %>')">
+                    
+                    <div class="chamado-info">
+                        <h4>
+                            <span class="badge-empresa <%= chamado.empresa_destino === 'Zents' ? 'badge-zents' : '' %>">
+                                <%= chamado.empresa_destino || 'Orbic' %>
+                            </span>
+                            #<%= String(chamado.id).substring(0,6) %> - <%= chamado.titulo %>
+                        </h4>
+                        <p>Aberto por: <strong><%= chamado.nome_requerente %></strong> em <%= new Date(chamado.criado_em).toLocaleDateString('pt-BR') %></p>
+                    </div>
+                    
+                    <div style="text-align: right;">
+                        <span class="status-<%= chamado.status %>">
+                            <%= chamado.status.replace('_', ' ').toUpperCase() %>
+                        </span>
+                        <div style="margin-top: 5px; font-size: 0.8rem; color: #888;">
+                            Prioridade: <strong style="color: #fff;"><%= chamado.prioridade %></strong>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+            
+            <% if(chamados.length === 0) { %>
+                <p style="color: #888; text-align: center; padding: 40px;">Nenhum chamado registrado no sistema ainda.</p>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Modal do Chamado -->
+    <div class="modal-overlay" id="modalChamado">
+        <div class="modal-content">
+            <!-- Esquerda: Detalhes Técnicos e Ações -->
+            <div class="modal-left">
+                <h2 id="modalTitulo" style="color: var(--primary); margin-bottom: 20px; font-family: 'Space Grotesk';">Carregando...</h2>
+                
+                <div style="margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 6px;">
+                    <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px;">Requerente:</p>
+                    <p id="modalRequerente" style="color: #fff; font-weight: bold;">-</p>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px;">Descrição Original:</p>
+                    <div id="modalDescricao" style="color: #fff; background: #000; padding: 15px; border-radius: 6px; font-size: 0.9rem; line-height: 1.5;">
+                        -
+                    </div>
+                </div>
+                
+                <hr style="border-color: rgba(255,255,255,0.1); margin: 30px 0;">
+                
+                <h3 style="color: #fff; margin-bottom: 15px;">Alterar Status (Gestão)</h3>
+                <select id="selectStatus" style="width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid var(--primary); border-radius: 6px; margin-bottom: 10px;">
+                    <option value="recebido">Recebido (Na fila)</option>
+                    <option value="em_andamento">Em Andamento (Trabalhando)</option>
+                    <option value="pendente_cliente">Pendente (Aguardando Sócio/Cliente)</option>
+                    <option value="atrasado">Atrasado (Passou do prazo)</option>
+                    <option value="resolvido">Resolvido (Finalizado)</option>
+                </select>
+                <button onclick="salvarStatus()" style="width: 100%; padding: 12px; background: var(--primary); color: #000; border: none; font-weight: bold; border-radius: 6px; cursor: pointer;">Atualizar Status do Ticket</button>
+
+            </div>
+
+            <!-- Direita: Chat ITIL -->
+            <div class="modal-right">
+                <div class="chat-header">
+                    <h3 style="color: #fff;">Comunicações do Chamado</h3>
+                    <button class="btn-close" onclick="fecharModal()">×</button>
+                </div>
+                
+                <div class="chat-messages" id="chatArea">
+                    <!-- Mensagens inseridas via JS -->
+                </div>
+
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Digite sua resposta para o cliente/sócio..." onkeypress="if(event.key === 'Enter') enviarMensagem()">
+                    <button onclick="enviarMensagem()">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chamadoAtual = null;
+
+        function filtrar() {
+            const empresa = document.getElementById('filtroEmpresa').value;
+            const status = document.getElementById('filtroStatus').value;
+            
+            document.querySelectorAll('.item-chamado').forEach(el => {
+                const emp = el.getAttribute('data-empresa');
+                const st = el.getAttribute('data-status');
+                
+                let mostraEmpresa = (empresa === 'todas') || (emp === empresa);
+                let mostraStatus = (status === 'todos') || (st === status);
+                
+                el.style.display = (mostraEmpresa && mostraStatus) ? 'flex' : 'none';
+            });
+        }
+
+        async function abrirChamado(id) {
+            chamadoAtual = id;
+            document.getElementById('modalChamado').style.display = 'flex';
+            document.getElementById('chatArea').innerHTML = '<p style="color: #888; text-align: center;">Carregando chat...</p>';
+            
+            try {
+                const res = await fetch('/api/chamados/' + id);
+                const data = await res.json();
+                
+                if(data.error) {
+                    alert(data.error);
+                    fecharModal();
+                    return;
+                }
+
+                // Preenche Dados da Esquerda
+                document.getElementById('modalTitulo').innerText = '#' + String(data.chamado.id).substring(0,6) + ' - ' + data.chamado.titulo;
+                document.getElementById('modalRequerente').innerText = data.chamado.nome_requerente;
+                document.getElementById('modalDescricao').innerText = data.chamado.descricao;
+                document.getElementById('selectStatus').value = data.chamado.status;
+
+                // Preenche Chat
+                renderChat(data.interacoes);
+
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        function renderChat(interacoes) {
+            const chatArea = document.getElementById('chatArea');
+            chatArea.innerHTML = '';
+            
+            if(!interacoes || interacoes.length === 0) {
+                chatArea.innerHTML = '<p style="color: #555; text-align: center; margin-top: 50px;">Nenhuma mensagem ainda. Inicie o atendimento.</p>';
+                return;
+            }
+
+            interacoes.forEach(int => {
+                const isDev = int.is_admin;
+                const div = document.createElement('div');
+                div.className = 'msg-box ' + (isDev ? 'msg-dev' : 'msg-cliente');
+                
+                const nome = int.nome_autor;
+                const dataHora = new Date(int.criado_em).toLocaleString('pt-BR');
+
+                div.innerHTML = `
+                    <div style="font-size: 0.75rem; color: ${isDev ? '#000' : '#aaa'}; margin-bottom: 5px; opacity: 0.8;">
+                        ${nome} • ${dataHora}
+                    </div>
+                    <div>${int.mensagem}</div>
+                `;
+                chatArea.appendChild(div);
+            });
+            
+            chatArea.scrollTop = chatArea.scrollHeight; // Desce pro final
+        }
+
+        function fecharModal() {
+            document.getElementById('modalChamado').style.display = 'none';
+            chamadoAtual = null;
+        }
+
+        async function salvarStatus() {
+            const novoStatus = document.getElementById('selectStatus').value;
+            if(!chamadoAtual) return;
+
+            try {
+                const res = await fetch('/api/chamados/' + chamadoAtual + '/status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: novoStatus })
+                });
+                if(res.ok) {
+                    alert('Status atualizado com sucesso!');
+                    window.location.reload(); // Recarrega para atualizar a lista
+                }
+            } catch(e) {
+                alert('Erro ao atualizar');
+            }
+        }
+
+        async function enviarMensagem() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if(!msg || !chamadoAtual) return;
+
+            input.value = 'Enviando...';
+            input.disabled = true;
+
+            try {
+                const res = await fetch('/api/chamados/' + chamadoAtual + '/interacao', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mensagem: msg })
+                });
+                if(res.ok) {
+                    input.value = '';
+                    abrirChamado(chamadoAtual); // Recarrega o modal para mostrar a nova mensagem
+                }
+            } catch(e) {
+                alert('Erro ao enviar mensagem');
+            } finally {
+                input.disabled = false;
+                input.focus();
+            }
+        }
+    </script>
+</body>
+</html>
