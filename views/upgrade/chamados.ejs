@@ -3,196 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ORBIC Upgrade | Painel de Chamados ITIL</title>
-    <!-- Carregando CSS Isolado do novo projeto -->
+    <title>ORBIC | Dashboard de Suporte</title>
+    <!-- CSS Global (Navbar e Footer) -->
+    <link rel="stylesheet" href="/css/main.css">
+    <!-- CSS Específico do Painel -->
     <link rel="stylesheet" href="/css/upgrade.css">
+    
+    <style>
+        /* Customizações de UI para Select e Layout de 2 colunas */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 5%;
+        }
+
+        /* Estilização Moderna dos Selects */
+        select.form-control {
+            appearance: none;
+            background-color: rgba(0, 0, 0, 0.7) !important;
+            color: #fff !important;
+            border: 1px solid rgba(0, 242, 255, 0.3) !important;
+            padding: 12px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        select.form-control option {
+            background-color: #111; /* Remove fundo branco nativo */
+            color: #fff;
+            padding: 10px;
+        }
+
+        /* Cores Removidas das Options e movidas apenas para o Badges (A pedido do User) */
+
+        /* Estilos do Histórico (Timeline) */
+        .history-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+        .history-card:hover {
+            border-color: rgba(0, 242, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* Mapeamento visual Intuitivo dos Status */
+        .status-recebido { background: rgba(255, 255, 255, 0.1); color: #ccc; border: 1px solid #aaa; }
+        .status-em_andamento { background: rgba(0, 242, 255, 0.1); color: #00f2ff; border: 1px solid #00f2ff; }
+        .status-pendente_cliente { background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid #ffcc00; }
+        .status-atrasado { background: rgba(255, 51, 102, 0.1); color: #ff3366; border: 1px solid #ff3366; }
+        .status-resolvido { background: rgba(51, 170, 51, 0.1); color: #33aa33; border: 1px solid #33aa33; }
+        
+        @media (max-width: 900px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
-<body class="upgrade-theme-scope">
+<body class="upgrade-theme-scope tech-bg">
 
-<div class="orbic-upgrade-wrapper">
+    <%- include('../partials/navbar') %>
 
-    <header class="upgrade-header">
-        <h1>PAINEL ZENTS <span style="font-size: 0.8rem; border: 1px solid var(--brand-upgrade); padding: 2px 8px; border-radius: 10px; margin-left: 10px;">ITIL V4</span></h1>
-        <nav class="upgrade-nav">
-            <a href="/suporte">← Voltar para Orbic Core</a>
-            <a href="#">Meus Chamados</a>
-        </nav>
-    </header>
+    <div class="dashboard-grid">
+        
+        <!-- LADO ESQUERDO: ABERTURA DE CHAMADOS & CALENDÁRIO -->
+        <div class="form-column">
+            <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 2rem; margin-bottom: 5px; color: #fff;">Novo Chamado</h2>
+            <p style="color: #aaa; margin-bottom: 30px;">Relate o problema para a equipe de engenharia.</p>
 
-    <main class="upgrade-container">
-        <div style="margin-bottom: 30px;">
-            <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 2.5rem; margin-bottom: 10px;">Abertura de Chamado Técnico</h2>
-            <p style="color: #aaa;">Preencha os dados abaixo com precisão para que o engenheiro responsável possa atuar o mais rápido possível.</p>
+            <form action="/api/chamados" method="POST" enctype="multipart/form-data" class="itil-card">
+                
+                <div class="form-group">
+                    <label class="form-label">TIPO DE SOLICITAÇÃO</label>
+                    <select name="tipo" class="form-control" required>
+                        <option value="" disabled selected>Selecione o tipo...</option>
+                        <option value="incidente">Problema / Erro (Incidente)</option>
+                        <option value="requisicao">Novo Pedido / Dúvida (Requisição)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">CATEGORIA</label>
+                    <select name="categoria" class="form-control" required>
+                        <option value="" disabled selected>Qual área isso afeta?</option>
+                        <option value="infra">Infraestrutura e Servidores</option>
+                        <option value="software">Sistema ou Regra de Negócio</option>
+                        <option value="interface">Design ou Layout da Tela</option>
+                        <option value="api">Integração (n8n, IA, etc)</option>
+                        <option value="acessos">Login e Acessos</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">RESUMO DO PROBLEMA</label>
+                    <input type="text" name="titulo" class="form-control" placeholder="Ex: Erro ao logar no sistema" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">DESCRIÇÃO DETALHADA</label>
+                    <textarea name="descricao" class="form-control" rows="4" placeholder="Como o problema acontece? Quais passos você fez?" required></textarea>
+                </div>
+
+                <div class="priority-grid">
+                    <div class="form-group">
+                        <label class="form-label">IMPACTO (Pessoas)</label>
+                        <select id="impacto" name="impacto" class="form-control" onchange="calcularPrioridade()" required>
+                            <option value="3">Baixo (Afeta só a mim)</option>
+                            <option value="2">Médio (Afeta uma equipe inteira)</option>
+                            <option value="1">Alto (Empresa toda parada)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">URGÊNCIA (Tempo)</label>
+                        <select id="urgencia" name="urgencia" class="form-control" onchange="calcularPrioridade()" required>
+                            <option value="3">Baixa (Pode ser na próxima semana)</option>
+                            <option value="2">Média (Preciso resolver entre hoje/amanhã)</option>
+                            <option value="1">Alta (Tem que ser agora, crítico)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="background: rgba(0,0,0,0.6); padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.1);">
+                    <div>
+                        <strong style="color: var(--brand-upgrade); font-family: 'Space Grotesk', sans-serif;">NÍVEL DO ATENDIMENTO</strong>
+                    </div>
+                    <div id="badge-prioridade" style="padding: 6px 15px; border-radius: 4px; font-weight: bold; font-family: 'Space Grotesk', sans-serif; background: #333; color: #fff;">
+                        P4 - Planejado
+                    </div>
+                    <input type="hidden" id="input-prioridade" name="prioridade" value="P4">
+                </div>
+
+                <!-- Google Calendar Booking Section -->
+                <div class="form-group" style="margin-top: 30px;">
+                    <label class="form-label">AGENDAR REUNIÃO / SUPORTE REMOTO (Google Calendar)</label>
+                    <p style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">Se o seu problema requer que o técnico acesse sua máquina, escolha um horário na agenda oficial abaixo antes de enviar o chamado.</p>
+                    
+                    <div style="width: 100%; height: 350px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(0, 242, 255, 0.2); background: #fff;">
+                        <!-- Substitua o link abaixo pelo link real do Agendamento do seu Google Agenda -->
+                        <iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0... (Exemplo Placehorlder)" style="border: 0" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
+                    </div>
+                    <small style="color: var(--brand-upgrade); display: block; margin-top: 5px;">*Após escolher o horário no calendário acima, não esqueça de clicar no botão Registrar Chamado abaixo.*</small>
+                </div>
+
+                <button type="submit" class="btn-submit" style="width: 100%; margin-top: 20px;">Registrar Chamado</button>
+            </form>
         </div>
 
-        <form action="/api/chamados" method="POST" enctype="multipart/form-data" class="itil-card">
-            
-            <div class="form-group">
-                <label class="form-label">
-                    TIPO DE CHAMADO
-                    <span class="help-icon" data-tooltip="Incidente: Algo que deveria estar funcionando, mas parou ou apresenta erro.&#xa;Requisição: Um pedido de algo novo, como liberação de acesso ou nova funcionalidade.">?</span>
-                </label>
-                <select name="tipo" class="form-control" required>
-                    <option value="" disabled selected>Selecione o tipo...</option>
-                    <option value="incidente">Incidente (Erro/Falha)</option>
-                    <option value="requisicao">Requisição de Serviço</option>
-                </select>
-            </div>
+        <!-- LADO DIREITO: HISTÓRICO DE CHAMADOS -->
+        <div class="history-column">
+            <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 2rem; margin-bottom: 5px; color: #fff;">Meu Histórico</h2>
+            <p style="color: #aaa; margin-bottom: 30px;">Acompanhe o andamento das suas solicitações.</p>
 
-            <div class="form-group">
-                <label class="form-label">
-                    CATEGORIA
-                    <span class="help-icon" data-tooltip="Define o contexto do problema. Ajuda o time a direcionar para o desenvolvedor ou devops correto.">?</span>
-                </label>
-                <select name="categoria" class="form-control" required>
-                    <option value="" disabled selected>Classifique o contexto...</option>
-                    <option value="infra">Infraestrutura (Servidor/Banco de Dados)</option>
-                    <option value="software">Software (Regra de Negócio/Backend)</option>
-                    <option value="interface">Interface (UX/UI/Frontend)</option>
-                    <option value="api">API / Integrações (n8n/Supabase)</option>
-                    <option value="acessos">Acessos e Permissões</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">TÍTULO RESUMIDO</label>
-                <input type="text" name="titulo" class="form-control" placeholder="Ex: Erro ao gerar PDF no Painel" required>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">DESCRIÇÃO DETALHADA</label>
-                <textarea name="descricao" class="form-control" rows="5" placeholder="Passo a passo para reproduzir o problema..." required></textarea>
-            </div>
-
-            <hr style="border: none; border-top: 1px solid var(--border-upgrade); margin: 30px 0;">
-
-            <div class="priority-grid">
-                <div class="form-group">
-                    <label class="form-label">
-                        IMPACTO
-                        <span class="help-icon" data-tooltip="O quanto isso afeta o negócio?&#xa;Alto: Toda a empresa parada.&#xa;Médio: Um setor/equipe impactado.&#xa;Baixo: Apenas 1 usuário afetado.">?</span>
-                    </label>
-                    <select id="impacto" name="impacto" class="form-control" onchange="calcularPrioridade()" required>
-                        <option value="3">Baixo (1 Usuário)</option>
-                        <option value="2">Médio (Uma equipe/setor)</option>
-                        <option value="1">Alto (Toda a empresa/Operação parada)</option>
-                    </select>
+            <% if (chamados && chamados.length > 0) { %>
+                <% chamados.forEach(chamado => { %>
+                    <div class="history-card">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                            <h3 style="margin: 0; color: #fff; font-size: 1.1rem;"><%= chamado.titulo %></h3>
+                            
+                            <!-- TRADUÇÃO INTUITIVA DE STATUS -->
+                            <% 
+                                let labelStatus = 'Recebido';
+                                let classStatus = 'status-recebido';
+                                
+                                if (chamado.status === 'em_andamento') { labelStatus = 'Em Andamento'; classStatus = 'status-em_andamento'; }
+                                else if (chamado.status === 'pendente_cliente') { labelStatus = 'Aguardando Você'; classStatus = 'status-pendente_cliente'; }
+                                else if (chamado.status === 'atrasado') { labelStatus = 'Em Atraso (Crítico)'; classStatus = 'status-atrasado'; }
+                                else if (chamado.status === 'resolvido') { labelStatus = 'Finalizado'; classStatus = 'status-resolvido'; }
+                                else if (chamado.status === 'cancelado') { labelStatus = 'Cancelado'; classStatus = 'status-recebido'; }
+                            %>
+                            <span class="status-badge <%= classStatus %>"><%= labelStatus %></span>
+                        </div>
+                        
+                        <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">
+                            <%= chamado.descricao.substring(0, 100) %><%= chamado.descricao.length > 100 ? '...' : '' %>
+                        </p>
+                        
+                        <div style="display: flex; gap: 15px; font-size: 0.8rem; color: #666;">
+                            <span><strong>Data:</strong> <%= new Date(chamado.criado_em).toLocaleDateString('pt-BR') %></span>
+                            <span style="color: var(--brand-upgrade);"><strong>Prioridade:</strong> <%= chamado.prioridade %></span>
+                            <span><strong>Ref:</strong> #<%= String(chamado.id).substring(0,6) %></span>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div style="text-align: center; padding: 50px 20px; background: rgba(0,0,0,0.4); border-radius: 10px; border: 1px dashed rgba(255,255,255,0.2);">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.5" style="margin-bottom: 15px;">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                    </svg>
+                    <h3 style="color: #fff; margin-bottom: 10px;">Nenhum chamado encontrado</h3>
+                    <p style="color: #888; font-size: 0.9rem;">Você ainda não possui solicitações de suporte ativas. Quando abrir um chamado, ele aparecerá aqui.</p>
                 </div>
+            <% } %>
+        </div>
 
-                <div class="form-group">
-                    <label class="form-label">
-                        URGÊNCIA
-                        <span class="help-icon" data-tooltip="O quão rápido o negócio precisa da solução?&#xa;Alta: Imediato, travando faturamento.&#xa;Média: Preciso para hoje.&#xa;Baixa: Pode ser resolvido nesta sprint.">?</span>
-                    </label>
-                    <select id="urgencia" name="urgencia" class="form-control" onchange="calcularPrioridade()" required>
-                        <option value="3">Baixa (Pode esperar alguns dias)</option>
-                        <option value="2">Média (Preciso para hoje)</option>
-                        <option value="1">Alta (Imediato / Crítico)</option>
-                    </select>
-                </div>
-            </div>
+    </div>
 
-            <div class="form-group" style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-upgrade);">
-                <div>
-                    <strong style="color: var(--brand-upgrade); font-family: 'Space Grotesk', sans-serif;">PRIORIDADE CALCULADA (SLA)</strong>
-                    <p style="font-size: 0.85rem; color: #888; margin: 0;">Calculada automaticamente baseada na matriz de Impacto x Urgência.</p>
-                </div>
-                <div id="badge-prioridade" style="padding: 8px 20px; border-radius: 4px; font-weight: bold; font-family: 'Space Grotesk', sans-serif; background: #333; color: #fff;">
-                    P4 - Planejado
-                </div>
-                <!-- Campo oculto para enviar no formulário -->
-                <input type="hidden" id="input-prioridade" name="prioridade" value="P4">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">ANEXOS (EVIDÊNCIAS / LOGS)</label>
-                <div class="drop-zone" id="drop-zone">
-                    <span style="font-size: 2rem; display: block; margin-bottom: 10px;">📄</span>
-                    Arraste os arquivos aqui ou clique para selecionar<br>
-                    <small style="color: #666;">Máximo 5MB (JPG, PNG, PDF)</small>
-                    <input type="file" name="anexos" id="file-input" style="display: none;" multiple>
-                </div>
-            </div>
-
-            <button type="submit" class="btn-submit">Registrar Chamado no Sistema</button>
-        </form>
-
-    </main>
-
-</div>
+    <%- include('../partials/footer') %>
 
 <script>
-    // Lógica ITIL: Matriz de Prioridade
     function calcularPrioridade() {
         const impacto = parseInt(document.getElementById('impacto').value);
         const urgencia = parseInt(document.getElementById('urgencia').value);
-        
         let prioridade = "P4";
         let cor = "#444";
-        let texto = "P4 - Planejado";
-
-        // Matriz 3x3 simples
+        let texto = "P4 - Baixa Prioridade";
         const soma = impacto + urgencia;
         
-        if (soma === 2) {
-            prioridade = "P1";
-            cor = "#ff0033";
-            texto = "P1 - Crítico (SLA: 2h)";
-        } else if (soma === 3 || soma === 4) {
-            prioridade = "P2";
-            cor = "#ff8800";
-            texto = "P2 - Alto (SLA: 8h)";
-        } else if (soma === 5) {
-            prioridade = "P3";
-            cor = "#ffcc00";
-            texto = "P3 - Médio (SLA: 24h)";
-        } else {
-            prioridade = "P4";
-            cor = "#33aa33";
-            texto = "P4 - Baixo (SLA: 7 dias)";
-        }
+        if (soma === 2) { prioridade = "P1"; cor = "#ff0033"; texto = "P1 - Crítico (2h)"; } 
+        else if (soma === 3 || soma === 4) { prioridade = "P2"; cor = "#ff8800"; texto = "P2 - Alto (8h)"; } 
+        else if (soma === 5) { prioridade = "P3"; cor = "#ffcc00"; texto = "P3 - Médio (24h)"; } 
+        else { prioridade = "P4"; cor = "#33aa33"; texto = "P4 - Planejado (7 dias)"; }
 
         const badge = document.getElementById('badge-prioridade');
         badge.style.backgroundColor = cor;
-        if(prioridade === 'P3') badge.style.color = '#000'; // Contraste para amarelo
-        else badge.style.color = '#fff';
-        
+        badge.style.color = (prioridade === 'P3') ? '#000' : '#fff';
         badge.innerText = texto;
         document.getElementById('input-prioridade').value = prioridade;
     }
-
-    // Drag and Drop Logic
-    const dropZone = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('file-input');
-
-    dropZone.addEventListener('click', () => fileInput.click());
-
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('dragover');
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('dragover');
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-        
-        if (e.dataTransfer.files.length) {
-            fileInput.files = e.dataTransfer.files;
-            dropZone.innerHTML = `<span style="color:var(--brand-upgrade); font-weight:bold;">${e.dataTransfer.files.length} arquivo(s) selecionado(s)</span>`;
-        }
-    });
-
-    fileInput.addEventListener('change', () => {
-        if (fileInput.files.length) {
-            dropZone.innerHTML = `<span style="color:var(--brand-upgrade); font-weight:bold;">${fileInput.files.length} arquivo(s) selecionado(s)</span>`;
-        }
-    });
-
-    // Inicializar matriz
     calcularPrioridade();
 </script>
 

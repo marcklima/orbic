@@ -14,7 +14,14 @@ const { createClient } = require('@supabase/supabase-js');
 // Configuração Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ukpkzjidelestigniyni.supabase.co';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'chave-anonima';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+        flowType: 'pkce',
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+        persistSession: false
+    }
+});
 
 app.use(express.json());
 app.use(session({
@@ -50,8 +57,16 @@ app.get('/auth/login/google', async (req, res) => {
 
 app.get('/auth/callback', async (req, res) => {
     const { code } = req.query;
+    console.log("[Auth Callback] Código recebido:", code ? "Sim" : "Não");
+
     if (code) {
         const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        
+        if (error) {
+            console.error("[Auth Callback] Erro no exchange:", error.message);
+            return res.status(500).send("Erro de Autenticação Supabase: " + error.message);
+        }
+
         if (data && data.user) {
             const email = data.user.email;
             // RBAC Dinâmico baseado no e-mail
@@ -84,9 +99,19 @@ app.get('/auth/callback', async (req, res) => {
                 empresa: empresa,
                 role: role
             };
+            
+            // Salva a sessão explicitamente antes do redirecionamento
+            return req.session.save((err) => {
+                if (err) console.error("Erro ao salvar sessão:", err);
+                res.redirect('/suporte');
+            });
+        } else {
+            return res.status(400).send("Falha ao obter dados do usuário do Google.");
         }
+    } else {
+        // Se não houver código, o fluxo foi interrompido
+        return res.status(400).send("Nenhum código de autorização foi retornado pelo Google.");
     }
-    res.redirect('/suporte');
 });
 
 app.get('/auth/logout', (req, res) => {
@@ -106,8 +131,26 @@ app.use('/upgrade', requireAuth);
 app.get('/upgrade', (req, res) => res.render('upgrade/index', { layout: false }));
 
 // Rotas do Novo Módulo ITIL (Upgrade Zents)
-app.get('/upgrade/chamados', requireAuth, (req, res) => {
-    res.render('upgrade/chamados', { layout: false });
+app.get('/upgrade/chamados', requireAuth, async (req, res) => {
+    try {
+        // Busca o histórico de chamados do usuário logado
+        const { data: chamados, error } = await supabase
+            .from('chamados_itil')
+            .select('*')
+            .eq('usuario_id', req.session.user.id)
+            .order('criado_em', { ascending: false });
+
+        if (error) throw error;
+
+        res.render('upgrade/chamados', { 
+            layout: false, 
+            user: req.session.user, 
+            chamados: chamados || [] 
+        });
+    } catch (err) {
+        console.error("Erro ao carregar histórico de chamados:", err);
+        res.render('upgrade/chamados', { layout: false, user: req.session.user, chamados: [] });
+    }
 });
 
 // Configuração do multer para anexos (simulado para a rota POST)
@@ -132,7 +175,7 @@ app.post('/api/chamados', upload.array('anexos', 3), async (req, res) => {
             impacto: parseInt(impacto),
             urgencia: parseInt(urgencia),
             prioridade: prioridade,
-            status: 'aberto'
+            status: 'recebido'
         });
 
         if (dbError) throw dbError;
@@ -153,9 +196,7 @@ app.get('/suporte', requireAuth, (req, res) => {
     res.render('suporte');
 });
 
-app.get('/suporte/novo', requireAuth, (req, res) => {
-    res.render('suporte_novo');
-});
+
 
 app.get('/financeiro', requireAuth, (req, res) => {
     res.render('financeiro');
