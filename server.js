@@ -47,7 +47,10 @@ const requireAuth = (req, res, next) => {
 
 // Rotas de Autenticação (Google OAuth)
 app.get('/auth/login/google', async (req, res) => {
-    const siteUrl = process.env.SITE_URL || 'http://localhost:3000';
+    // Detecta automaticamente se está no localhost ou na VPS (production)
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const siteUrl = process.env.SITE_URL || `${protocol}://${req.get('host')}`;
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: `${siteUrl}/auth/callback` }
