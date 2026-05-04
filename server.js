@@ -49,7 +49,8 @@ const requireAuth = (req, res, next) => {
 app.get('/auth/login/google', async (req, res) => {
     // Detecta automaticamente se está no localhost ou na VPS (production)
     const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-    const siteUrl = process.env.SITE_URL || `${protocol}://${req.get('host')}`;
+    let siteUrl = process.env.SITE_URL || `${protocol}://${req.get('host')}`;
+    if (siteUrl.endsWith('/')) siteUrl = siteUrl.slice(0, -1);
     
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
