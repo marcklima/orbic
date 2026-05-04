@@ -12,8 +12,8 @@ const axios = require('axios');
 const { createClient } = require('@supabase/supabase-js');
 
 // Configuração Supabase
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ukpkzjidelestigniyni.supabase.co';
-const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'chave-anonima';
+const supabaseUrl = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ukpkzjidelestigniyni.supabase.co').trim();
+const supabaseKey = (process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'chave-anonima').trim();
 const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: {
         flowType: 'pkce',
@@ -62,18 +62,26 @@ const requireAuth = (req, res, next) => {
 
 // Rotas de Autenticação (Google OAuth)
 app.get('/auth/login/google', async (req, res) => {
-    // Detecta automaticamente se está no localhost ou na VPS (production)
+    // Garantir que a URL base seja a mesma pela qual o usuário está acessando (www ou não-www)
+    // Isso evita perder o cookie de sessão `connect.sid` no redirecionamento (causa do erro PKCE)
     const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-    let siteUrl = process.env.SITE_URL || `${protocol}://${req.get('host')}`;
-    if (siteUrl.endsWith('/')) siteUrl = siteUrl.slice(0, -1);
+    const siteUrl = `${protocol}://${req.get('host')}`;
     
     const supabaseAuth = getSupabaseAuth(req);
     const { data, error } = await supabaseAuth.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: `${siteUrl}/auth/callback` }
     });
-    if (data?.url) res.redirect(data.url);
-    else res.status(500).send("Erro ao inicializar Google Auth.");
+    
+    if (data?.url) {
+        // Força a persistência da sessão na memória ANTES de enviar o redirect pro navegador
+        req.session.save((err) => {
+            if (err) console.error("Erro ao salvar PKCE na sessão:", err);
+            res.redirect(data.url);
+        });
+    } else {
+        res.status(500).send("Erro ao inicializar Google Auth.");
+    }
 });
 
 app.get('/auth/callback', async (req, res) => {
