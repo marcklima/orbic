@@ -45,12 +45,16 @@
         </div>
         <% } %>
         <% if (user) { %>
+            <% if (user.role !== 'zents' && user.role !== 'suporte_l1') { %>
             <a href="/suporte">Suporte</a>
-            <% if (user.email !== 'palavraevidaonline@gmail.com') { %>
+            <% } %>
+            <% if (user.email !== 'palavraevidaonline@gmail.com' && user.role !== 'suporte_l1') { %>
             <a href="/upgrade/chamados">Meus Chamados</a>
             <% } %>
-            <% if (user.role === 'admin' || user.role === 'zents') { %>
+            <% if (user.role === 'admin' || user.role === 'suporte_l1') { %>
                 <a href="/upgrade/gestao" style="color: #00f2ff; font-weight: bold;">Gestão ITIL</a>
+            <% } %>
+            <% if (user.role === 'admin' || user.role === 'zents') { %>
                 <a href="/financeiro">Financeiro</a>
             <% } %>
             <% if (user.email === 'palavraevidaonline@gmail.com') { %>

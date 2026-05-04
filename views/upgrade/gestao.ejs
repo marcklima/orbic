@@ -283,8 +283,11 @@
                     <option value="atrasado">Atrasado (Prazo estourado)</option>
                     <option value="resolvido">Concluído (Resolvido)</option>
                 </select>
-                <button onclick="salvarStatus()" style="width: 100%; padding: 12px; background: var(--primary); color: #000; border: none; font-weight: bold; border-radius: 6px; cursor: pointer;">Atualizar Status do Ticket</button>
+                <button onclick="salvarStatus()" style="width: 100%; padding: 12px; background: var(--primary); color: #000; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 15px;">Atualizar Status do Ticket</button>
 
+                <% if (user.role === 'admin') { %>
+                <button onclick="deletarChamado()" style="width: 100%; padding: 10px; background: transparent; color: #ff3366; border: 1px solid #ff3366; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='#ff3366'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#ff3366';">Excluir Chamado Permanentemente</button>
+                <% } %>
             </div>
 
             <!-- Direita: Chat ITIL -->
@@ -416,6 +419,26 @@
                 }
             } catch(e) {
                 alert('Erro ao atualizar');
+            }
+        }
+
+        async function deletarChamado() {
+            if(!chamadoAtual) return;
+            if(!confirm('Tem certeza absoluta que deseja EXCLUIR este chamado para sempre? As mensagens do chat também serão apagadas!')) return;
+
+            try {
+                const res = await fetch('/api/chamados/delete/' + chamadoAtual, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if(res.ok) {
+                    alert('Chamado deletado com sucesso!');
+                    window.location.reload();
+                } else {
+                    alert('Acesso negado ou erro ao deletar.');
+                }
+            } catch(e) {
+                alert('Erro de comunicação ao deletar chamado.');
             }
         }
 

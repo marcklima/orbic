@@ -80,7 +80,7 @@ app.get('/auth/callback', async (req, res) => {
             if (userDb && userDb.nivel_acesso) {
                 // Se já existe no banco, respeita a permissão do banco
                 role = userDb.nivel_acesso;
-                empresa = email.includes('@zents') || role === 'admin' ? 'Zents' : 'Cliente';
+                empresa = email.includes('@zents') || role === 'admin' || role === 'zents' ? 'Zents' : 'Cliente';
             } else {
                 // Se é novo, aplica a regra padrão do e-mail
                 if (email === 'suporte.vidanca@gmail.com' || email === 'palavraevidaonline@gmail.com') {
@@ -96,6 +96,11 @@ app.get('/auth/callback', async (req, res) => {
             if (email === 'palavraevidaonline@gmail.com') {
                 role = 'admin';
             }
+            // Força o Dev Zents a ter a permissão exata
+            if (email === 'suporte.vidanca@gmail.com') {
+                role = 'suporte_l1';
+                empresa = 'Zents';
+            }
 
             // Bloqueio de Acesso
             if (role === 'bloqueado') {
@@ -106,6 +111,7 @@ app.get('/auth/callback', async (req, res) => {
             // mas é super recomendado criar a coluna 'email' na tabela perfis_usuarios)
             const { error: syncError } = await supabase.from('perfis_usuarios').upsert({
                 id: data.user.id,
+                email: email,
                 nome_completo: data.user.user_metadata.full_name || email.split('@')[0],
                 nivel_acesso: role,
                 ultima_atividade: new Date()
@@ -200,7 +206,7 @@ app.post('/api/chamados', upload.array('anexos', 3), async (req, res) => {
 
         const { tipo, categoria, titulo, descricao, impacto, urgencia } = req.body;
         
-        const empresa_destino = req.session.user.empresa === 'Zents' ? 'Zents' : 'Orbic';
+        const empresa_destino = (req.session.user.empresa === 'Zents' || req.session.user.role === 'zents') ? 'Zents' : 'Orbic';
         
         // Cálculo da Matriz de Prioridade ITIL no Servidor
         const imp = parseInt(impacto) || 3;
@@ -227,8 +233,8 @@ app.post('/api/chamados', upload.array('anexos', 3), async (req, res) => {
 
         if (dbError) throw dbError;
 
-        console.log(`[ITIL Zents] Chamado Salvo no BD: ${prioridade} - ${titulo}`);
-        console.log(`[E-MAIL SIMULADO] Disparando e-mail para dev@orbic.com -> Novo chamado ${prioridade} criado com sucesso.`);
+        console.log(`[ITIL Zents] Chamado Salvo no BD: ${prioridadeITIL} - ${titulo}`);
+        console.log(`[E-MAIL SIMULADO] Disparando e-mail para dev@orbic.com -> Novo chamado ${prioridadeITIL} criado com sucesso.`);
 
         // Após salvar, redireciona de volta com mensagem de sucesso
         res.redirect('/upgrade/chamados?success=true');
@@ -243,9 +249,9 @@ app.post('/api/chamados', upload.array('anexos', 3), async (req, res) => {
 // ============================================
 
 app.get('/upgrade/gestao', requireAuth, async (req, res) => {
-    // Apenas admins podem acessar
-    if (req.session.user.role !== 'admin') {
-        return res.status(403).send("Acesso Negado. Esta página é exclusiva para a equipe técnica.");
+    // Admins, Zents e Suporte L1 podem acessar
+    if (req.session.user.role !== 'admin' && req.session.user.role !== 'zents' && req.session.user.role !== 'suporte_l1') {
+        return res.status(403).send("Acesso Negado. Esta página é exclusiva para a equipe técnica e sócios da Zents.");
     }
 
     try {
@@ -272,8 +278,8 @@ app.get('/upgrade/gestao', requireAuth, async (req, res) => {
             return c;
         });
 
-        // O Dev da Zents só vê Zents
-        if (req.session.user.role === 'zents') {
+        // O Dev da Zents e usuários Zents só veem Zents
+        if (req.session.user.role === 'zents' || req.session.user.role === 'suporte_l1') {
             chamadosFiltrados = chamadosFiltrados.filter(c => c.empresa_destino === 'Zents');
         }
 
@@ -359,7 +365,7 @@ app.get('/api/chamados/:id', requireAuth, async (req, res) => {
 // API: Atualizar Status do Chamado
 app.post('/api/chamados/:id/status', requireAuth, async (req, res) => {
     try {
-        if (req.session.user.role !== 'admin') return res.status(403).json({ error: "Acesso Negado." });
+        if (req.session.user.role !== 'admin' && req.session.user.role !== 'suporte_l1') return res.status(403).json({ error: "Acesso Negado." });
         
         const chamadoId = req.params.id;
         const { status } = req.body;
@@ -408,6 +414,29 @@ app.post('/api/chamados/:id/interacao', requireAuth, async (req, res) => {
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: "Erro ao enviar mensagem" });
+    }
+});
+
+// API: Deletar Chamado (Super Admin)
+app.post('/api/chamados/delete/:id', requireAuth, async (req, res) => {
+    try {
+        if (req.session.user.role !== 'admin') {
+            return res.status(403).json({ error: "Acesso negado." });
+        }
+        
+        const chamadoId = req.params.id;
+        
+        // Deleta primeiro as interações associadas (evitar erro de chave estrangeira)
+        await supabase.from('chamados_interacoes').delete().eq('chamado_id', chamadoId);
+        
+        // Deleta o chamado em si
+        const { error } = await supabase.from('chamados_itil').delete().eq('id', chamadoId);
+        
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Erro ao deletar chamado:", err);
+        res.status(500).json({ error: "Erro ao deletar chamado" });
     }
 });
 

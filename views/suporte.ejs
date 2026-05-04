@@ -69,12 +69,14 @@
 
         <section class="grid-layout">
             <!-- Bloco de Chamados ITIL -->
+            <% if (user.role !== 'suporte_l1') { %>
             <div class="glass-card">
                 <div class="icon-large">🎧</div>
                 <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; margin-bottom: 10px;">Suporte & Chamados</h3>
                 <p style="color: #888;">Abra novas solicitações técnicas, agende suportes remotos e acompanhe o andamento do seu histórico.</p>
                 <a href="<%= user.email === 'palavraevidaonline@gmail.com' ? '/upgrade/gestao' : '/upgrade/chamados' %>" class="btn-portal">Acessar Dashboard</a>
             </div>
+            <% } %>
 
             <!-- Bloco Zents (Condicional) -->
             <% if (user && (user.role === 'zents' || user.role === 'admin' || user.empresa === 'Zents')) { %>

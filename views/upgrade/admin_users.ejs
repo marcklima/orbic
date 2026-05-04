@@ -101,6 +101,7 @@
         }
         .role-admin { background: rgba(0, 179, 104, 0.1); color: #00b368; border: 1px solid #00b368; }
         .role-zents { background: rgba(0, 170, 255, 0.1); color: #00aaff; border: 1px solid #00aaff; }
+        .role-suporte_l1 { background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid #ffcc00; }
         .role-cliente { background: rgba(255, 255, 255, 0.1); color: #ccc; border: 1px solid #aaa; }
         .role-bloqueado { background: rgba(255, 51, 102, 0.1); color: #ff3366; border: 1px solid #ff3366; }
 
@@ -155,6 +156,7 @@
                                     <select class="role-select" id="role-<%= u.id %>" <%= u.email === 'palavraevidaonline@gmail.com' ? 'disabled' : '' %>>
                                         <option value="cliente" <%= u.nivel_acesso === 'cliente' ? 'selected' : '' %>>Cliente</option>
                                         <option value="zents" <%= u.nivel_acesso === 'zents' ? 'selected' : '' %>>Zents (Operador)</option>
+                                        <option value="suporte_l1" <%= u.nivel_acesso === 'suporte_l1' ? 'selected' : '' %>>Dev (Suporte L1)</option>
                                         <option value="admin" <%= u.nivel_acesso === 'admin' ? 'selected' : '' %>>Admin (Gestor)</option>
                                         <option value="bloqueado" <%= u.nivel_acesso === 'bloqueado' ? 'selected' : '' %>>BLOQUEADO</option>
                                     </select>
