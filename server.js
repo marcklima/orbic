@@ -13,7 +13,16 @@ const { createClient } = require('@supabase/supabase-js');
 
 // Configuração Supabase
 const supabaseUrl = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ukpkzjidelestigniyni.supabase.co').trim();
-const supabaseKey = (process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'chave-anonima').trim();
+const supabaseKeyRaw = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'chave-anonima';
+const supabaseKey = supabaseKeyRaw.trim();
+
+console.log("=== DIAGNÓSTICO DE AMBIENTE ===");
+console.log("SUPABASE_URL:", supabaseUrl);
+console.log("SUPABASE_KEY está configurada?", supabaseKey !== 'chave-anonima' ? "SIM" : "NÃO");
+console.log("Tamanho da SUPABASE_KEY:", supabaseKey.length);
+console.log("Variáveis no ENV:", Object.keys(process.env).filter(k => k.includes('SUPABASE')));
+console.log("===============================");
+
 const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: {
         flowType: 'pkce',
