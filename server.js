@@ -16,13 +16,18 @@ const supabaseUrl = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABAS
 const supabaseKeyRaw = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'chave-anonima';
 const supabaseKey = supabaseKeyRaw.trim();
 
+// Chave Service Role (Bypass RLS) para operações de backend seguras
+const supabaseServiceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseKey).trim();
+
 console.log("=== DIAGNÓSTICO DE AMBIENTE ===");
 console.log("SUPABASE_URL:", supabaseUrl);
 console.log("SUPABASE_KEY está configurada?", supabaseKey !== 'chave-anonima' ? "SIM" : "NÃO");
 console.log("Tamanho da SUPABASE_KEY:", supabaseKey.length);
+console.log("SERVICE_ROLE configurada?", process.env.SUPABASE_SERVICE_ROLE_KEY ? "SIM" : "NÃO");
 console.log("Variáveis no ENV:", Object.keys(process.env).filter(k => k.includes('SUPABASE')));
 console.log("===============================");
 
+// Cliente Supabase Global (Anon)
 const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: {
         flowType: 'pkce',
@@ -31,6 +36,9 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
         persistSession: false
     }
 });
+
+// Cliente Supabase Admin (Bypass RLS) para gravação no banco
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 // Helper para instanciar Supabase e salvar o PKCE Verifier na sessão do Express
 const getSupabaseAuth = (req) => createClient(supabaseUrl, supabaseKey, {
@@ -261,8 +269,8 @@ app.post('/api/chamados', upload.array('anexos', 3), async (req, res) => {
         else if (soma === 3 || soma === 4) prioridadeITIL = "P2";
         else if (soma === 5) prioridadeITIL = "P3";
 
-        // Salvando no banco de dados Supabase
-        const { error: dbError } = await supabase.from('chamados_itil').insert({
+        // Salvando no banco de dados Supabase usando o cliente Admin para contornar o RLS
+        const { error: dbError } = await supabaseAdmin.from('chamados_itil').insert({
             usuario_id: req.session.user.id,
             tipo: tipo,
             categoria: categoria,
