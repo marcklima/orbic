@@ -167,7 +167,7 @@
             <% if (chamados && chamados.length > 0) { %>
                 <% chamados.forEach(chamado => { %>
                     <% const precisaAtencao = (chamado.status === 'pendente_cliente' || chamado.status === 'em_andamento'); %>
-                    <div class="history-card" style="<%= precisaAtencao ? 'box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); border-color: #00f2ff;' : '' %>">
+                    <div class="history-card" style="<%= precisaAtencao ? 'border-left: 4px solid #00aaff; background: rgba(0, 170, 255, 0.05);' : 'border-left: 4px solid transparent;' %>">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                             <h3 style="margin: 0; color: #fff; font-size: 1.1rem; font-weight: 700;"><%= chamado.titulo %></h3>
                             
@@ -178,6 +178,7 @@
                                 
                                 if (chamado.status === 'em_andamento') { labelStatus = 'Em Andamento'; classStatus = 'status-em_andamento'; }
                                 else if (chamado.status === 'pendente_cliente') { labelStatus = 'Aguardando Você'; classStatus = 'status-pendente_cliente'; }
+                                else if (chamado.status === 'pendente_terceiro') { labelStatus = 'Em Análise Externa'; classStatus = 'status-pendente_terceiro'; }
                                 else if (chamado.status === 'atrasado') { labelStatus = 'Em Atraso (Crítico)'; classStatus = 'status-atrasado'; }
                                 else if (chamado.status === 'resolvido') { labelStatus = 'Finalizado'; classStatus = 'status-resolvido'; }
                                 else if (chamado.status === 'cancelado') { labelStatus = 'Cancelado'; classStatus = 'status-recebido'; }
