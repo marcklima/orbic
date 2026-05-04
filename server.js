@@ -12,8 +12,8 @@ const axios = require('axios');
 const { createClient } = require('@supabase/supabase-js');
 
 // Configuração Supabase
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ukpkzjidelestigniyni.supabase.co';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'chave-anonima';
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ukpkzjidelestigniyni.supabase.co';
+const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'chave-anonima';
 const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: {
         flowType: 'pkce',
@@ -151,7 +151,13 @@ app.get('/auth/logout', (req, res) => {
 });
 
 
-app.get('/', (req, res) => res.render('orbic'));
+app.get('/', (req, res) => {
+    // Intercepta o código de autenticação caso o Supabase redirecione para a raiz
+    if (req.query.code) {
+        return res.redirect(`/auth/callback?code=${req.query.code}`);
+    }
+    res.render('orbic');
+});
 app.get('/hubimb', (req, res) => res.render('hubimb'));
 app.get('/intellect', (req, res) => res.render('intellect'));
 app.get('/videobook', (req, res) => res.render('videobook'));
