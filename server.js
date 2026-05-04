@@ -23,6 +23,21 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
     }
 });
 
+// Helper para instanciar Supabase e salvar o PKCE Verifier na sessão do Express
+const getSupabaseAuth = (req) => createClient(supabaseUrl, supabaseKey, {
+    auth: {
+        flowType: 'pkce',
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+        persistSession: true,
+        storage: {
+            getItem: (key) => req.session[key] || null,
+            setItem: (key, value) => { req.session[key] = value; },
+            removeItem: (key) => { delete req.session[key]; }
+        }
+    }
+});
+
 app.use(express.json());
 app.use(session({
     secret: 'orbic-secret-key',
@@ -52,7 +67,8 @@ app.get('/auth/login/google', async (req, res) => {
     let siteUrl = process.env.SITE_URL || `${protocol}://${req.get('host')}`;
     if (siteUrl.endsWith('/')) siteUrl = siteUrl.slice(0, -1);
     
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const supabaseAuth = getSupabaseAuth(req);
+    const { data, error } = await supabaseAuth.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: `${siteUrl}/auth/callback` }
     });
@@ -65,7 +81,8 @@ app.get('/auth/callback', async (req, res) => {
     console.log("[Auth Callback] Código recebido:", code ? "Sim" : "Não");
 
     if (code) {
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        const supabaseAuth = getSupabaseAuth(req);
+        const { data, error } = await supabaseAuth.auth.exchangeCodeForSession(code);
         
         if (error) {
             console.error("[Auth Callback] Erro no exchange:", error.message);
