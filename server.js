@@ -47,9 +47,10 @@ const requireAuth = (req, res, next) => {
 
 // Rotas de Autenticação (Google OAuth)
 app.get('/auth/login/google', async (req, res) => {
+    const siteUrl = process.env.SITE_URL || 'http://localhost:3000';
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: 'http://localhost:3000/auth/callback' }
+        options: { redirectTo: `${siteUrl}/auth/callback` }
     });
     if (data?.url) res.redirect(data.url);
     else res.status(500).send("Erro ao inicializar Google Auth.");
@@ -69,25 +70,43 @@ app.get('/auth/callback', async (req, res) => {
 
         if (data && data.user) {
             const email = data.user.email;
-            // RBAC Dinâmico baseado no e-mail
+            
+            // 1. Tenta buscar o usuário no banco
+            const { data: userDb } = await supabase.from('perfis_usuarios').select('*').eq('id', data.user.id).single();
+            
             let empresa = 'Cliente';
             let role = 'cliente';
             
-            if (email === 'suporte.vidanca@gmail.com' || email === 'palavraevidaonline@gmail.com') {
-                role = 'admin';
-                empresa = 'Zents';
-            } else if (email.includes('@zents') || email === 'dev@orbic.com') {
-                empresa = 'Zents';
-                role = 'zents';
+            if (userDb && userDb.nivel_acesso) {
+                // Se já existe no banco, respeita a permissão do banco
+                role = userDb.nivel_acesso;
+                empresa = email.includes('@zents') || role === 'admin' ? 'Zents' : 'Cliente';
+            } else {
+                // Se é novo, aplica a regra padrão do e-mail
+                if (email === 'suporte.vidanca@gmail.com' || email === 'palavraevidaonline@gmail.com') {
+                    role = 'admin'; empresa = 'Zents';
+                } else if (email.includes('@zents') || email === 'dev@orbic.com') {
+                    role = 'zents'; empresa = 'Zents';
+                } else if (email.includes('admin') || email === 'marcklima@orbic.com' || email === 'bainautec@gmail.com') {
+                    role = 'admin';
+                }
             }
-            if (email.includes('admin') || email === 'marcklima@orbic.com' || email === 'bainautec@gmail.com') {
+
+            // O Super Admin nunca perde a coroa
+            if (email === 'palavraevidaonline@gmail.com') {
                 role = 'admin';
             }
 
-            // Upsert (Sincroniza) o usuário no banco de dados na tabela perfis_usuarios
+            // Bloqueio de Acesso
+            if (role === 'bloqueado') {
+                return res.status(403).send("Seu acesso foi revogado pelo administrador do sistema.");
+            }
+
+            // Sincroniza o usuário (tentei omitir o email caso a coluna não exista, 
+            // mas é super recomendado criar a coluna 'email' na tabela perfis_usuarios)
             const { error: syncError } = await supabase.from('perfis_usuarios').upsert({
                 id: data.user.id,
-                nome_completo: data.user.user_metadata.full_name || "Usuário",
+                nome_completo: data.user.user_metadata.full_name || email.split('@')[0],
                 nivel_acesso: role,
                 ultima_atividade: new Date()
             }, { onConflict: 'id' });
@@ -97,7 +116,7 @@ app.get('/auth/callback', async (req, res) => {
             req.session.user = {
                 id: data.user.id,
                 email: email,
-                nome: data.user.user_metadata.full_name || "Usuário",
+                nome: data.user.user_metadata.full_name || email.split('@')[0],
                 picture: data.user.user_metadata.avatar_url || "",
                 empresa: empresa,
                 role: role
@@ -399,9 +418,6 @@ app.get('/suporte', requireAuth, (req, res) => {
 
 
 
-app.get('/financeiro', requireAuth, (req, res) => {
-    res.render('financeiro');
-});
 
 // Rotas Administrativas
 const adminRoutes = require('./routes/admin');
@@ -467,6 +483,115 @@ app.post('/chat/pergunta', async (req, res) => {
     } catch (error) {
         console.error("[Intellect Chat] Erro RAG n8n:", error.message);
         res.status(500).json({ reply: "Incapaz de acessar o repositório cognitivo no momento. Verifique a conexão com o núcleo n8n/Ollama." });
+    }
+});
+
+// ==========================================
+// PAINEL SUPER ADMIN: GESTÃO DE USUÁRIOS
+// ==========================================
+const requireSuperAdmin = (req, res, next) => {
+    if (!req.session.user || req.session.user.email !== 'palavraevidaonline@gmail.com') {
+        return res.status(403).send("Acesso negado. Apenas o Super Administrador pode acessar esta página.");
+    }
+    next();
+};
+
+app.get('/upgrade/admin/usuarios', requireSuperAdmin, async (req, res) => {
+    // Busca todos os perfis
+    const { data: usuarios, error } = await supabase
+        .from('perfis_usuarios')
+        .select('*')
+        .order('ultima_atividade', { ascending: false });
+
+    res.render('upgrade/admin_users', { 
+        usuarios: usuarios || [], 
+        erro: error ? error.message : null 
+    });
+});
+
+app.post('/api/admin/usuarios/:id/role', requireSuperAdmin, async (req, res) => {
+    const { role } = req.body;
+    const userId = req.params.id;
+
+    // Atualiza a permissão no banco de dados
+    const { error } = await supabase
+        .from('perfis_usuarios')
+        .update({ nivel_acesso: role })
+        .eq('id', userId);
+
+    if (error) {
+        console.error("Erro ao alterar permissão:", error.message);
+        return res.status(500).json({ success: false, error: error.message });
+    }
+    res.json({ success: true });
+});
+
+// ==========================================
+// MÓDULO FINANCEIRO (ZENTS)
+// ==========================================
+const requireZents = (req, res, next) => {
+    if (!req.session.user || (req.session.user.role !== 'zents' && req.session.user.role !== 'admin')) {
+        return res.status(403).send("Acesso Negado. Módulo restrito aos sócios Zents.");
+    }
+    next();
+};
+
+app.get('/financeiro', requireZents, async (req, res) => {
+    // Busca transações e faz JOIN com perfis_usuarios para pegar o nome
+    const { data: transacoes, error } = await supabase
+        .from('financeiro_zents')
+        .select('*, perfis_usuarios(nome_completo)')
+        .order('data_evento', { ascending: false });
+
+    res.render('upgrade/financeiro', { 
+        transacoes: transacoes || [], 
+        erro: error ? error.message : null 
+    });
+});
+
+app.post('/api/financeiro', requireZents, async (req, res) => {
+    try {
+        const { tipo, categoria, valor, descricao, data_evento } = req.body;
+        // Tratamento do valor (ex: 1.500,50 -> 1500.50)
+        let val = valor.replace(/\./g, '').replace(',', '.');
+        val = parseFloat(val);
+
+        const { error } = await supabase.from('financeiro_zents').insert({
+            usuario_id: req.session.user.id,
+            tipo: tipo,
+            categoria: categoria,
+            valor: val,
+            descricao: descricao,
+            data_evento: data_evento
+        });
+
+        if (error) throw error;
+        res.redirect('/financeiro?success=true');
+    } catch (e) {
+        console.error("Erro no financeiro:", e.message);
+        res.status(500).send("Erro ao salvar transação: " + e.message);
+    }
+});
+
+app.post('/api/financeiro/delete/:id', requireZents, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Autorização no Node.js
+        const { data: row } = await supabase.from('financeiro_zents').select('usuario_id').eq('id', id).single();
+        if (!row) return res.status(404).send("Registro não encontrado.");
+        
+        if (row.usuario_id !== req.session.user.id && req.session.user.role !== 'admin') {
+            return res.status(403).send("Você não tem permissão para excluir um registro criado por outro sócio.");
+        }
+
+        const { error } = await supabase.from('financeiro_zents').delete().eq('id', id);
+        if (error) throw error;
+        
+        res.redirect('/financeiro?deleted=true');
+    } catch (e) {
+        console.error("Erro ao deletar financeiro:", e.message);
+        res.status(500).send("Erro ao deletar transação: " + e.message);
     }
 });
 

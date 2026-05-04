@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORBIC | Financeiro Zents</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/upgrade.css">
+    <style>
+        .gestao-container {
+            padding: 100px 5% 40px 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-gestao {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Dashboard Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .kpi-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .kpi-card h3 { margin: 0; color: #888; font-size: 1rem; text-transform: uppercase; }
+        .kpi-card.entrada h2 { color: #00b368; font-size: 2.5rem; margin: 10px 0 0 0; }
+        .kpi-card.saida h2 { color: #ff3366; font-size: 2.5rem; margin: 10px 0 0 0; }
+        .kpi-card.saldo h2 { color: var(--primary); font-size: 2.5rem; margin: 10px 0 0 0; }
+
+        /* Tabela */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        th { background: rgba(0,0,0,0.5); color: #888; font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; font-size: 0.8rem; }
+        
+        .valor-entrada { color: #00b368; font-weight: bold; }
+        .valor-saida { color: #ff3366; font-weight: bold; }
+
+        /* Formulário */
+        .finance-form {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { color: #aaa; font-size: 0.85rem; margin-bottom: 5px; }
+        .form-group input, .form-group select {
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px 15px;
+            border-radius: 4px;
+        }
+
+        .btn-submit {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            height: 42px;
+        }
+        .btn-submit:hover { background: var(--primary); color: #000; }
+
+        .btn-print {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-delete {
+            background: transparent;
+            color: #ff3366;
+            border: 1px solid #ff3366;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        /* ESTILOS DE IMPRESSÃO (GERADOR DE RELATÓRIO PDF) */
+        @media print {
+            body { background: #fff !important; color: #000 !important; }
+            nav, .finance-form, .btn-print, .btn-delete { display: none !important; }
+            .gestao-container { padding: 0; max-width: 100%; }
+            .kpi-card { border: 1px solid #ccc !important; }
+            .kpi-card.entrada h2, .kpi-card.saida h2, .kpi-card.saldo h2 { color: #000 !important; }
+            th { background: #eee !important; color: #000 !important; border-bottom: 2px solid #ccc; }
+            td { border-bottom: 1px solid #eee !important; color: #000 !important; }
+            .valor-entrada, .valor-saida { color: #000 !important; }
+            * { box-shadow: none !important; text-shadow: none !important; }
+        }
+    </style>
+</head>
+<body class="upgrade-theme-scope tech-bg">
+
+    <%- include('../partials/navbar') %>
+
+    <% 
+        let totalEntradas = 0;
+        let totalSaidas = 0;
+        
+        transacoes.forEach(t => {
+            if (t.tipo === 'entrada') totalEntradas += Number(t.valor);
+            if (t.tipo === 'saida') totalSaidas += Number(t.valor);
+        });
+
+        let saldo = totalEntradas - totalSaidas;
+    %>
+
+    <div class="gestao-container">
+        <div class="header-gestao">
+            <div>
+                <h1 style="font-family: 'Space Grotesk', sans-serif; color: var(--primary); font-size: 2.5rem; margin-bottom: 5px;">Módulo Financeiro Zents</h1>
+                <p style="color: #888;">Gestão de Entradas, Saídas e Relatórios de Sócios.</p>
+            </div>
+            <button class="btn-print" onclick="window.print()">🖨️ Gerar PDF / Imprimir</button>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card entrada">
+                <h3>Total Entradas</h3>
+                <h2>R$ <%= totalEntradas.toLocaleString('pt-BR', {minimumFractionDigits: 2}) %></h2>
+            </div>
+            <div class="kpi-card saida">
+                <h3>Total Saídas</h3>
+                <h2>R$ <%= totalSaidas.toLocaleString('pt-BR', {minimumFractionDigits: 2}) %></h2>
+            </div>
+            <div class="kpi-card saldo" style="<%= saldo < 0 ? 'border-color: #ff3366;' : '' %>">
+                <h3>Saldo Atual</h3>
+                <h2 style="<%= saldo < 0 ? 'color: #ff3366;' : '' %>">R$ <%= saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2}) %></h2>
+            </div>
+        </div>
+
+        <!-- Formulário de Cadastro -->
+        <form class="finance-form" action="/api/financeiro" method="POST">
+            <div class="form-group">
+                <label>Tipo</label>
+                <select name="tipo" required>
+                    <option value="entrada">Entrada</option>
+                    <option value="saida">Saída (Despesa)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Categoria</label>
+                <select name="categoria" required>
+                    <option value="Vendas">Vendas / Receita</option>
+                    <option value="Despesas Mensais">Despesas Mensais</option>
+                    <option value="Semanais">Despesas Semanais</option>
+                    <option value="Esporádicas">Esporádicas</option>
+                    <option value="Desenvolvimento">Desenvolvimento</option>
+                    <option value="Serviços Terceiros">Serviços de Terceiros</option>
+                    <option value="Outros">Outros</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Data</label>
+                <input type="date" name="data_evento" required>
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Descrição</label>
+                <input type="text" name="descricao" placeholder="Ex: Pagamento fornecedor X" required>
+            </div>
+            <div class="form-group">
+                <label>Valor (R$)</label>
+                <input type="text" name="valor" placeholder="1500,00" required>
+            </div>
+            <button type="submit" class="btn-submit">+ Adicionar</button>
+        </form>
+
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th>Categoria</th>
+                        <th>Descrição</th>
+                        <th>Sócio (Lançador)</th>
+                        <th>Valor</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (transacoes.length === 0) { %>
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: #888;">Nenhuma transação registrada.</td>
+                        </tr>
+                    <% } %>
+                    <% transacoes.forEach(t => { %>
+                        <tr>
+                            <td><%= new Date(t.data_evento).toLocaleDateString('pt-BR', {timeZone: 'UTC'}) %></td>
+                            <td>
+                                <span style="padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; <%= t.tipo === 'entrada' ? 'background: rgba(0, 179, 104, 0.1); color: #00b368;' : 'background: rgba(255, 51, 102, 0.1); color: #ff3366;' %>">
+                                    <%= t.tipo.toUpperCase() %>
+                                </span>
+                            </td>
+                            <td><%= t.categoria %></td>
+                            <td><%= t.descricao %></td>
+                            <td style="color: #aaa; font-size: 0.9rem;">
+                                <%= t.perfis_usuarios ? t.perfis_usuarios.nome_completo : 'Desconhecido' %>
+                            </td>
+                            <td class="<%= t.tipo === 'entrada' ? 'valor-entrada' : 'valor-saida' %>">
+                                R$ <%= Number(t.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2}) %>
+                            </td>
+                            <td>
+                                <% if (t.usuario_id === user.id || user.role === 'admin') { %>
+                                    <form action="/api/financeiro/delete/<%= t.id %>" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir?');">
+                                        <button type="submit" class="btn-delete">Excluir</button>
+                                    </form>
+                                <% } else { %>
+                                    <span style="font-size: 0.8rem; color: #666;">Apenas visualização</span>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>

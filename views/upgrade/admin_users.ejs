@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORBIC | Controle de Usuários</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/upgrade.css">
+    <style>
+        .gestao-container {
+            padding: 100px 5% 40px 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-gestao {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        th {
+            background: rgba(0,0,0,0.5);
+            color: #888;
+            font-family: 'Space Grotesk', sans-serif;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+        }
+
+        select.role-select {
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        select.role-select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        .btn-update {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+            transition: 0.3s;
+            margin-left: 10px;
+        }
+
+        .btn-update:hover {
+            background: var(--primary);
+            color: #000;
+        }
+
+        .badge-role {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .role-admin { background: rgba(0, 179, 104, 0.1); color: #00b368; border: 1px solid #00b368; }
+        .role-zents { background: rgba(0, 170, 255, 0.1); color: #00aaff; border: 1px solid #00aaff; }
+        .role-cliente { background: rgba(255, 255, 255, 0.1); color: #ccc; border: 1px solid #aaa; }
+        .role-bloqueado { background: rgba(255, 51, 102, 0.1); color: #ff3366; border: 1px solid #ff3366; }
+
+    </style>
+</head>
+<body class="upgrade-theme-scope tech-bg">
+
+    <%- include('../partials/navbar') %>
+
+    <div class="gestao-container">
+        <div class="header-gestao">
+            <div>
+                <h1 style="font-family: 'Space Grotesk', sans-serif; color: var(--primary); font-size: 2.5rem;">Gestão de Usuários</h1>
+                <p style="color: #888;">Controle de acesso e permissões (Super Admin).</p>
+            </div>
+            <% if (erro) { %>
+                <div style="background: rgba(255, 51, 102, 0.1); border: 1px solid #ff3366; padding: 10px 20px; border-radius: 4px; color: #ff3366;">
+                    <%= erro %>
+                </div>
+            <% } %>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Usuário</th>
+                        <th>Status Atual</th>
+                        <th>Alterar Permissão</th>
+                        <th>Último Acesso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% usuarios.forEach(u => { %>
+                        <tr>
+                            <td>
+                                <div class="user-info">
+                                    <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.2);">
+                                        👤
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: bold; color: #fff;"><%= u.nome_completo || 'Sem Nome' %></div>
+                                        <div style="font-size: 0.8rem; color: #888;"><%= u.email || 'Email não registrado (Novo sistema)' %></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge-role role-<%= u.nivel_acesso %>"><%= u.nivel_acesso %></span>
+                            </td>
+                            <td>
+                                <div style="display: flex; align-items: center;">
+                                    <select class="role-select" id="role-<%= u.id %>" <%= u.email === 'palavraevidaonline@gmail.com' ? 'disabled' : '' %>>
+                                        <option value="cliente" <%= u.nivel_acesso === 'cliente' ? 'selected' : '' %>>Cliente</option>
+                                        <option value="zents" <%= u.nivel_acesso === 'zents' ? 'selected' : '' %>>Zents (Operador)</option>
+                                        <option value="admin" <%= u.nivel_acesso === 'admin' ? 'selected' : '' %>>Admin (Gestor)</option>
+                                        <option value="bloqueado" <%= u.nivel_acesso === 'bloqueado' ? 'selected' : '' %>>BLOQUEADO</option>
+                                    </select>
+                                    <% if (u.email !== 'palavraevidaonline@gmail.com') { %>
+                                        <button class="btn-update" onclick="atualizarPermissao('<%= u.id %>')">Salvar</button>
+                                    <% } else { %>
+                                        <span style="font-size: 0.8rem; color: #888; margin-left: 10px;">(Imutável)</span>
+                                    <% } %>
+                                </div>
+                            </td>
+                            <td style="color: #aaa; font-size: 0.9rem;">
+                                <%= u.ultima_atividade ? new Date(u.ultima_atividade).toLocaleString('pt-BR') : '-' %>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function atualizarPermissao(userId) {
+            const select = document.getElementById('role-' + userId);
+            const novaRole = select.value;
+            const btn = select.nextElementSibling;
+
+            btn.textContent = "Salvando...";
+            btn.style.opacity = '0.5';
+
+            try {
+                const res = await fetch(`/api/admin/usuarios/${userId}/role`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role: novaRole })
+                });
+
+                if (res.ok) {
+                    alert('Permissão atualizada com sucesso!');
+                    window.location.reload();
+                } else {
+                    const data = await res.json();
+                    alert('Erro ao atualizar: ' + (data.error || 'Desconhecido'));
+                    btn.textContent = "Salvar";
+                    btn.style.opacity = '1';
+                }
+            } catch (err) {
+                alert('Erro na requisição. Tente novamente.');
+                btn.textContent = "Salvar";
+                btn.style.opacity = '1';
+            }
+        }
+    </script>
+</body>
+</html>

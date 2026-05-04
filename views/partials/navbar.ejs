@@ -1,17 +1,60 @@
+<style>
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #111;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+        z-index: 1000;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 4px;
+        top: 100%;
+        left: 0;
+    }
+    .dropdown-content a {
+        color: #fff;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        font-size: 0.9rem;
+        margin-left: 0 !important;
+    }
+    .dropdown-content a:hover {
+        background-color: rgba(255,255,255,0.1);
+        color: var(--primary);
+    }
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+</style>
 <nav>
     <a href="/" class="logo">ORBIC</a>
     <div class="nav-links" style="display: flex; align-items: center;">
         <% if (typeof user !== 'undefined' && user && (user.email === 'palavraevidaonlina@gmail.com' || user.email === 'palavraevidaonline@gmail.com' || user.role === 'admin')) { %>
-        <a href="/intellect">Intellect</a>
-        <a href="/hubimb">Hubimb</a>
-        <a href="/videobook">Video Book</a>
+        <div class="dropdown">
+            <a href="#" class="dropbtn" style="color: #aaa;">Em Produção ▼</a>
+            <div class="dropdown-content">
+                <a href="/intellect">Intellect</a>
+                <a href="/hubimb">Hubimb</a>
+                <a href="/videobook">Video Book</a>
+            </div>
+        </div>
         <% } %>
         <% if (user) { %>
             <a href="/suporte">Suporte</a>
+            <% if (user.email !== 'palavraevidaonline@gmail.com') { %>
             <a href="/upgrade/chamados">Meus Chamados</a>
+            <% } %>
             <% if (user.role === 'admin' || user.role === 'zents') { %>
                 <a href="/upgrade/gestao" style="color: #00f2ff; font-weight: bold;">Gestão ITIL</a>
                 <a href="/financeiro">Financeiro</a>
+            <% } %>
+            <% if (user.email === 'palavraevidaonline@gmail.com') { %>
+                <a href="/upgrade/admin/usuarios" style="color: #ff3366; font-weight: bold;">Usuários</a>
             <% } %>
             <a href="/upgrade" style="color: var(--primary); text-shadow: 0 0 5px var(--primary); border: 1px solid var(--primary); padding: 4px 12px; border-radius: 4px;">UPGRADE</a>
             
