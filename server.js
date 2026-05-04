@@ -145,6 +145,19 @@ app.get('/upgrade/chamados', requireAuth, async (req, res) => {
 
         if (error) throw error;
 
+        // Ordenação ITIL: Status prioritários > Prioridade (P1-P4) > Data
+        if (chamados) {
+            chamados.sort((a, b) => {
+                const statusImportantes = ['recebido', 'em_andamento', 'pendente_cliente', 'atrasado'];
+                const aImportante = statusImportantes.includes(a.status) ? 1 : 0;
+                const bImportante = statusImportantes.includes(b.status) ? 1 : 0;
+                
+                if (aImportante !== bImportante) return bImportante - aImportante;
+                if (a.prioridade && b.prioridade && a.prioridade !== b.prioridade) return a.prioridade.localeCompare(b.prioridade);
+                return new Date(b.criado_em) - new Date(a.criado_em);
+            });
+        }
+
         res.render('upgrade/chamados', { 
             layout: false, 
             user: req.session.user, 
@@ -166,10 +179,19 @@ app.post('/api/chamados', upload.array('anexos', 3), async (req, res) => {
             return res.status(401).send("Acesso Negado. Faça login.");
         }
 
-        const { tipo, categoria, titulo, descricao, impacto, urgencia, prioridade } = req.body;
+        const { tipo, categoria, titulo, descricao, impacto, urgencia } = req.body;
         
         const empresa_destino = req.session.user.empresa === 'Zents' ? 'Zents' : 'Orbic';
         
+        // Cálculo da Matriz de Prioridade ITIL no Servidor
+        const imp = parseInt(impacto) || 3;
+        const urg = parseInt(urgencia) || 3;
+        const soma = imp + urg;
+        let prioridadeITIL = "P4";
+        if (soma === 2) prioridadeITIL = "P1";
+        else if (soma === 3 || soma === 4) prioridadeITIL = "P2";
+        else if (soma === 5) prioridadeITIL = "P3";
+
         // Salvando no banco de dados Supabase
         const { error: dbError } = await supabase.from('chamados_itil').insert({
             usuario_id: req.session.user.id,
@@ -177,9 +199,9 @@ app.post('/api/chamados', upload.array('anexos', 3), async (req, res) => {
             categoria: categoria,
             titulo: titulo,
             descricao: descricao,
-            impacto: parseInt(impacto),
-            urgencia: parseInt(urgencia),
-            prioridade: prioridade,
+            impacto: imp,
+            urgencia: urg,
+            prioridade: prioridadeITIL,
             status: 'recebido',
             empresa_destino: empresa_destino
         });
@@ -235,6 +257,17 @@ app.get('/upgrade/gestao', requireAuth, async (req, res) => {
         if (req.session.user.role === 'zents') {
             chamadosFiltrados = chamadosFiltrados.filter(c => c.empresa_destino === 'Zents');
         }
+
+        // Ordenação ITIL: Status prioritários > Prioridade (P1-P4) > Data
+        chamadosFiltrados.sort((a, b) => {
+            const statusImportantes = ['recebido', 'em_andamento', 'pendente_cliente', 'atrasado'];
+            const aImportante = statusImportantes.includes(a.status) ? 1 : 0;
+            const bImportante = statusImportantes.includes(b.status) ? 1 : 0;
+            
+            if (aImportante !== bImportante) return bImportante - aImportante;
+            if (a.prioridade && b.prioridade && a.prioridade !== b.prioridade) return a.prioridade.localeCompare(b.prioridade);
+            return new Date(b.criado_em) - new Date(a.criado_em);
+        });
 
         res.render('upgrade/gestao', { 
             layout: false, 
@@ -318,6 +351,14 @@ app.post('/api/chamados/:id/status', requireAuth, async (req, res) => {
             .eq('id', chamadoId);
             
         if (error) throw error;
+
+        // Log de Auditoria
+        await supabase.from('chamados_interacoes').insert({
+            chamado_id: chamadoId,
+            usuario_id: req.session.user.id,
+            mensagem: `Status alterado para '${status.replace('_', ' ').toUpperCase()}' por ${req.session.user.nome}`,
+            tipo: 'sistema' // Marcação para mensagens automáticas
+        });
         res.json({ success: true, status });
     } catch (err) {
         res.status(500).json({ error: "Erro ao atualizar status" });

@@ -1,4 +1,13 @@
-// Efeito de Cursor Tecnológico removido a pedido do usuário
+// Efeito de Cursor Tecnológico
+const cursor = document.getElementById('cursor');
+const cursorDot = document.getElementById('cursor-dot');
+
+if (cursor && cursorDot) {
+    window.addEventListener('mousemove', (e) => {
+        cursor.style.transform = `translate(${e.clientX - 15}px, ${e.clientY - 15}px)`;
+        cursorDot.style.transform = `translate(${e.clientX - 3}px, ${e.clientY - 3}px)`;
+    });
+}
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) entry.target.classList.add('active');

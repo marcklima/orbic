@@ -1,12 +1,16 @@
 <nav>
     <a href="/" class="logo">ORBIC</a>
     <div class="nav-links" style="display: flex; align-items: center;">
+        <% if (typeof user !== 'undefined' && user && (user.email === 'palavraevidaonlina@gmail.com' || user.email === 'palavraevidaonline@gmail.com' || user.role === 'admin')) { %>
         <a href="/intellect">Intellect</a>
         <a href="/hubimb">Hubimb</a>
         <a href="/videobook">Video Book</a>
+        <% } %>
         <% if (user) { %>
             <a href="/suporte">Suporte</a>
+            <a href="/upgrade/chamados">Meus Chamados</a>
             <% if (user.role === 'admin' || user.role === 'zents') { %>
+                <a href="/upgrade/gestao" style="color: #00f2ff; font-weight: bold;">Gestão ITIL</a>
                 <a href="/financeiro">Financeiro</a>
             <% } %>
             <a href="/upgrade" style="color: var(--primary); text-shadow: 0 0 5px var(--primary); border: 1px solid var(--primary); padding: 4px 12px; border-radius: 4px;">UPGRADE</a>

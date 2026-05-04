@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ORBIC | Tecnologia & Inovação</title>
+    <title>ORBIC | Digitalizando Sonhos</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/main.css">
 </head>
@@ -15,9 +16,44 @@
     <%- include('partials/navbar') %>
 
     <header>
-        <h1 data-reveal>ORBIC CORE</h1>
-        <p class="subtitle" data-reveal>Engenharia de inteligência e hardware disruptivo para o próximo nível humano.</p>
+        <h1 data-reveal>ORBIC</h1>
+        <p class="subtitle" data-reveal>Serviços de tecnologia para empresas.</p>
+        <p style="margin-top: 30px; font-family: 'Space Grotesk', sans-serif; font-size: 0.9rem; letter-spacing: 3px; color: var(--primary);" data-reveal>ORBIC - Digitalizando sonhos</p>
     </header>
+
+    <section class="projects" style="margin-top: 20px;">
+        <div class="card" data-reveal>
+            <h3 style="color: var(--primary)">Nossa Autoridade</h3>
+            <p>A Orbic tem mais de 20 anos no mercado, prestando serviços em tecnologia para empresas.</p>
+            <br>
+            <h3 style="color: var(--primary)">Nossos Serviços</h3>
+            <ul style="list-style: none; padding: 0; margin-top: 10px; line-height: 1.8; color: var(--text-dim);">
+                <li>• Suporte Corporativo Especializado</li>
+                <li>• Gestão e Implementação de Servidores</li>
+                <li>• Gestão de Redes e Virtualização</li>
+                <li>• Segurança Digital e Proteção de Dados</li>
+                <li>• Marketing Digital</li>
+                <li>• Consultoria</li>
+            </ul>
+        </div>
+        
+        <div class="card" data-reveal>
+            <h3 style="color: var(--primary)">Contato & Localização</h3>
+            <p>Entre em contato para elevar a tecnologia da sua empresa.</p>
+            <ul style="list-style: none; padding: 0; margin-top: 15px; line-height: 2; color: var(--text-dim);">
+                <li><strong>WhatsApp:</strong> 85-98826-9872</li>
+                <li><strong>E-mail:</strong> contato@orbic.com.br</li>
+                <li><strong>Instagram:</strong> @orbic.oficial</li>
+                <li><strong>Local:</strong> Fortaleza - CE</li>
+            </ul>
+        </div>
+    </section>
+
+    <% if (typeof user !== 'undefined' && user && (user.email === 'palavraevidaonlina@gmail.com' || user.email === 'palavraevidaonline@gmail.com' || user.role === 'admin')) { %>
+    <hr style="border-color: rgba(255,255,255,0.1); margin: 60px 0;">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <span style="background: var(--primary); color: #000; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.8rem;">ÁREA RESTRITA: PROJETOS EM DESENVOLVIMENTO</span>
+    </div>
 
     <section class="featured-intellect" id="intellect" data-reveal>
         <div class="intellect-container">
@@ -56,6 +92,7 @@
             <p>O hardware que redefine o aprendizado. Experiência tátil com conteúdo dinâmico em vídeo integrado, focado em manuais técnicos e educação de alta retenção.</p>
         </div>
     </section>
+    <% } %>
 
     <%- include('partials/footer') %>
 

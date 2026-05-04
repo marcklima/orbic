@@ -166,9 +166,10 @@
 
             <% if (chamados && chamados.length > 0) { %>
                 <% chamados.forEach(chamado => { %>
-                    <div class="history-card">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                            <h3 style="margin: 0; color: #fff; font-size: 1.1rem;"><%= chamado.titulo %></h3>
+                    <% const precisaAtencao = (chamado.status === 'pendente_cliente' || chamado.status === 'em_andamento'); %>
+                    <div class="history-card" style="<%= precisaAtencao ? 'box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); border-color: #00f2ff;' : '' %>">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <h3 style="margin: 0; color: #fff; font-size: 1.1rem; font-weight: 700;"><%= chamado.titulo %></h3>
                             
                             <!-- TRADUÇÃO INTUITIVA DE STATUS -->
                             <% 
@@ -184,15 +185,11 @@
                             <span class="status-badge <%= classStatus %>"><%= labelStatus %></span>
                         </div>
                         
-                        <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">
-                            <%= chamado.descricao.substring(0, 100) %><%= chamado.descricao.length > 100 ? '...' : '' %>
-                        </p>
-                        
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-                            <div style="display: flex; gap: 15px; font-size: 0.8rem; color: #666;">
-                                <span><strong>Data:</strong> <%= new Date(chamado.criado_em).toLocaleDateString('pt-BR') %></span>
-                                <span style="color: var(--brand-upgrade);"><strong>Prioridade:</strong> <%= chamado.prioridade %></span>
-                                <span><strong>Ref:</strong> #<%= String(chamado.id).substring(0,6) %></span>
+                            <div style="display: flex; gap: 15px; font-size: 0.8rem; color: #888;">
+                                <span><strong style="font-weight: 500;">Data:</strong> <%= new Date(chamado.criado_em).toLocaleDateString('pt-BR') %></span>
+                                <span style="color: var(--brand-upgrade);"><strong style="font-weight: 600;">Prioridade:</strong> <%= chamado.prioridade %></span>
+                                <span><strong style="font-weight: 500;">Ref:</strong> #<%= String(chamado.id).substring(0,6) %></span>
                             </div>
                             <button onclick="abrirChatCliente('<%= chamado.id %>', '<%= chamado.titulo %>')" style="background: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.3s;" onmouseover="this.style.background='var(--primary)'; this.style.color='#000';" onmouseout="this.style.background='transparent'; this.style.color='var(--primary)';">💬 Ver Chat</button>
                         </div>
@@ -299,20 +296,22 @@
 
             if (eu) {
                 div.style.alignSelf = 'flex-end';
-                div.style.background = 'rgba(0, 255, 136, 0.1)';
-                div.style.borderRight = '3px solid var(--primary)';
+                div.style.background = 'rgba(255, 255, 255, 0.1)';
+                div.style.border = '1px solid rgba(255, 255, 255, 0.2)';
                 div.style.textAlign = 'right';
+                div.style.color = '#fff';
             } else {
                 div.style.alignSelf = 'flex-start';
-                div.style.background = 'rgba(255,255,255,0.05)';
-                div.style.borderLeft = '3px solid #888';
+                div.style.background = 'rgba(0, 255, 136, 0.15)';
+                div.style.border = '1px solid var(--primary)';
+                div.style.color = '#fff';
             }
 
             const nome = int.nome_autor || 'Usuário';
             const dataHora = new Date(int.criado_em).toLocaleString('pt-BR');
 
             div.innerHTML = `
-                <div style="font-size: 0.75rem; color: ${eu ? '#000' : '#aaa'}; margin-bottom: 5px; opacity: 0.8;">
+                <div style="font-size: 0.75rem; color: #ccc; margin-bottom: 5px; opacity: 0.9;">
                     ${eu ? 'Você' : nome} • ${dataHora}
                 </div>
                 <div>${int.mensagem}</div>
