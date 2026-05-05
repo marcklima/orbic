@@ -27,3 +27,28 @@ if (slides.length > 0) {
     }
     setInterval(nextSlide, 5000);
 }
+
+
+// Theme Toggle Logic
+const themeToggles = document.querySelectorAll('#theme-toggle, #theme-toggle-logged');
+const currentTheme = localStorage.getItem('orbic_theme');
+
+if (currentTheme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    themeToggles.forEach(btn => btn.innerHTML = '🌙');
+}
+
+themeToggles.forEach(btn => {
+    btn.addEventListener('click', () => {
+        let theme = document.documentElement.getAttribute('data-theme');
+        if (theme === 'light') {
+            document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem('orbic_theme', 'dark');
+            themeToggles.forEach(b => b.innerHTML = '☀️');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            localStorage.setItem('orbic_theme', 'light');
+            themeToggles.forEach(b => b.innerHTML = '🌙');
+        }
+    });
+});

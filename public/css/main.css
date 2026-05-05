@@ -9,6 +9,53 @@
     --device-bg: #111;
 }
 
+[data-theme="light"] {
+    --bg: #f5f7fa;
+    --primary: #00b35f;
+    --accent: #117a37;
+    --text: #1a1a1a;
+    --text-dim: #555555;
+    --glass: rgba(0, 0, 0, 0.05);
+    --border: rgba(0, 0, 0, 0.15);
+    --device-bg: #e0e0e0;
+}
+
+/* Light Theme Overrides for hardcoded backgrounds */
+[data-theme="light"] header,
+[data-theme="light"] .featured-intellect,
+[data-theme="light"] .hero-hub,
+[data-theme="light"] .hero-internal,
+[data-theme="light"] .hero-device,
+[data-theme="light"] .hero-hub-new,
+[data-theme="light"] footer,
+[data-theme="light"] .cta-hub,
+[data-theme="light"] .cta-box,
+[data-theme="light"] .specs,
+[data-theme="light"] .tech-stack,
+[data-theme="light"] .vto-section,
+[data-theme="light"] .security-banners,
+[data-theme="light"] .promo-kit,
+[data-theme="light"] nav,
+[data-theme="light"] .dropdown-content {
+    background: var(--bg);
+}
+
+[data-theme="light"] .card, 
+[data-theme="light"] .hub-card, 
+[data-theme="light"] .nicho-card, 
+[data-theme="light"] .tech-item {
+    background: #ffffff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+[data-theme="light"] .logo,
+[data-theme="light"] .nav-links a {
+    color: var(--text);
+}
+[data-theme="light"] .logo { color: var(--primary); }
+[data-theme="light"] .btn-buy, [data-theme="light"] .btn-hub, [data-theme="light"] .btn-cta, [data-theme="light"] .btn-hub-cta { color: #fff !important; }
+[data-theme="light"] #theme-toggle, [data-theme="light"] #theme-toggle-logged { color: #1a1a1a !important; }
+
 * {
     margin: 0;
     padding: 0;
