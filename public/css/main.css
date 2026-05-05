@@ -418,5 +418,23 @@ footer {
         height: auto !important;
         margin: 5% auto !important;
     }
+
+    /* Correção de Overflow Horizontal na Home */
+    .projects, .hub-grid {
+        grid-template-columns: 1fr !important;
+        padding: 50px 5% !important;
+    }
+    .intellect-info {
+        min-width: 100% !important;
+    }
+    .mockup-ui {
+        flex-direction: column;
+        height: auto;
+    }
+    .sidebar-ui {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--glass);
+    }
 }
 
