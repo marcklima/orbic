@@ -373,13 +373,19 @@ footer {
     }
     .nav-links {
         margin-top: 15px;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        width: 100%;
     }
     .nav-links a {
-        margin-left: 10px !important;
-        font-size: 0.7rem;
+        margin-left: 0 !important;
+        font-size: 0.9rem;
+        padding: 10px;
+        width: 100%;
+        text-align: center;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
     }
     .nav-links > div {
         border-left: none !important;
@@ -403,6 +409,14 @@ footer {
         display: block;
         overflow-x: auto;
         white-space: nowrap;
+    }
+    
+    /* Modais Globais */
+    .modal-content, [id^="modal"] > div {
+        width: 95% !important;
+        max-height: 90vh !important;
+        height: auto !important;
+        margin: 5% auto !important;
     }
 }
 

@@ -72,6 +72,17 @@
         @media (max-width: 900px) {
             .dashboard-grid { grid-template-columns: 1fr; }
         }
+
+        @media (max-width: 768px) {
+            .history-card > div:first-child { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .history-card > div:last-child { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .history-card > div:last-child > div { flex-wrap: wrap; }
+            
+            #modalChatCliente > div {
+                width: 95% !important;
+                height: 90vh !important;
+            }
+        }
     </style>
 </head>
 <body class="upgrade-theme-scope tech-bg">
