@@ -214,7 +214,7 @@ app.get('/upgrade', (req, res) => res.render('upgrade/index', { layout: false })
 app.get('/upgrade/chamados', requireAuth, async (req, res) => {
     try {
         // Busca o histórico de chamados do usuário logado
-        const { data: chamados, error } = await supabase
+        const { data: chamados, error } = await supabaseAdmin
             .from('chamados_itil')
             .select('*')
             .eq('usuario_id', req.session.user.id)
@@ -307,7 +307,7 @@ app.get('/upgrade/gestao', requireAuth, async (req, res) => {
     }
 
     try {
-        const { data: chamados, error } = await supabase
+        const { data: chamados, error } = await supabaseAdmin
             .from('chamados_itil')
             .select('*')
             .order('criado_em', { ascending: false });
@@ -321,7 +321,7 @@ app.get('/upgrade/gestao', requireAuth, async (req, res) => {
         const userIds = [...new Set(chamados.map(c => c.usuario_id))];
         let mapNomes = {};
         if (userIds.length > 0) {
-            const { data: perfis } = await supabase.from('perfis_usuarios').select('id, nome_completo').in('id', userIds);
+            const { data: perfis } = await supabaseAdmin.from('perfis_usuarios').select('id, nome_completo').in('id', userIds);
             if (perfis) perfis.forEach(p => mapNomes[p.id] = p.nome_completo);
         }
 
@@ -363,7 +363,7 @@ app.get('/api/chamados/:id', requireAuth, async (req, res) => {
         const chamadoId = req.params.id;
         
         // Busca chamado
-        const { data: chamado, error: erroChamado } = await supabase
+        const { data: chamado, error: erroChamado } = await supabaseAdmin
             .from('chamados_itil')
             .select('*')
             .eq('id', chamadoId)
@@ -380,7 +380,7 @@ app.get('/api/chamados/:id', requireAuth, async (req, res) => {
         }
 
         // Busca Interações
-        const { data: interacoes, error: erroInteracoes } = await supabase
+        const { data: interacoes, error: erroInteracoes } = await supabaseAdmin
             .from('chamados_interacoes')
             .select('*')
             .eq('chamado_id', chamadoId)
@@ -393,7 +393,7 @@ app.get('/api/chamados/:id', requireAuth, async (req, res) => {
         // Busca manual de perfis para interações
         if (interacoes && interacoes.length > 0) {
             const intUserIds = [...new Set(interacoes.map(i => i.usuario_id))];
-            const { data: intPerfis } = await supabase.from('perfis_usuarios').select('id, nome_completo, nivel_acesso').in('id', intUserIds);
+            const { data: intPerfis } = await supabaseAdmin.from('perfis_usuarios').select('id, nome_completo, nivel_acesso').in('id', intUserIds);
             const mapInt = {};
             if (intPerfis) intPerfis.forEach(p => mapInt[p.id] = p);
             
@@ -404,7 +404,7 @@ app.get('/api/chamados/:id', requireAuth, async (req, res) => {
         }
         
         // Adiciona o nome do autor principal no chamado
-        const { data: autorChamado } = await supabase.from('perfis_usuarios').select('nome_completo').eq('id', chamado.usuario_id).single();
+        const { data: autorChamado } = await supabaseAdmin.from('perfis_usuarios').select('nome_completo').eq('id', chamado.usuario_id).single();
         chamado.nome_requerente = autorChamado ? autorChamado.nome_completo : 'Usuário';
 
         res.json({ chamado, interacoes: interacoes || [] });
@@ -422,7 +422,7 @@ app.post('/api/chamados/:id/status', requireAuth, async (req, res) => {
         const chamadoId = req.params.id;
         const { status } = req.body;
         
-        const { error } = await supabase
+        const { error } = await supabaseAdmin
             .from('chamados_itil')
             .update({ status: status })
             .eq('id', chamadoId);
@@ -430,7 +430,7 @@ app.post('/api/chamados/:id/status', requireAuth, async (req, res) => {
         if (error) throw error;
 
         // Log de Auditoria
-        await supabase.from('chamados_interacoes').insert({
+        await supabaseAdmin.from('chamados_interacoes').insert({
             chamado_id: chamadoId,
             usuario_id: req.session.user.id,
             mensagem: `Status alterado para '${status.replace('_', ' ').toUpperCase()}' por ${req.session.user.nome}`,
@@ -448,7 +448,7 @@ app.post('/api/chamados/:id/interacao', requireAuth, async (req, res) => {
         const chamadoId = req.params.id;
         const { mensagem } = req.body;
         
-        const { error } = await supabase
+        const { error } = await supabaseAdmin
             .from('chamados_interacoes')
             .insert({
                 chamado_id: chamadoId,
