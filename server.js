@@ -479,10 +479,10 @@ app.post('/api/chamados/delete/:id', requireAuth, async (req, res) => {
         const chamadoId = req.params.id;
         
         // Deleta primeiro as interações associadas (evitar erro de chave estrangeira)
-        await supabase.from('chamados_interacoes').delete().eq('chamado_id', chamadoId);
+        await supabaseAdmin.from('chamados_interacoes').delete().eq('chamado_id', chamadoId);
         
         // Deleta o chamado em si
-        const { error } = await supabase.from('chamados_itil').delete().eq('id', chamadoId);
+        const { error } = await supabaseAdmin.from('chamados_itil').delete().eq('id', chamadoId);
         
         if (error) throw error;
         res.json({ success: true });
