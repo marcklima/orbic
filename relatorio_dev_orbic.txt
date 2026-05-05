@@ -1,0 +1,115 @@
+# INFORMAÇÕES DE SUPORTE E INFRAESTRUTURA - PROJETO ORBIC
+
+## REPOSITÓRIO OFICIAL (GITHUB)
+- URL: https://github.com/marcklima/orbic.git
+- Branch Principal: main
+
+## N8N
+- Status: Rodando Localmente (in loco) no PC host (NÃO está na nuvem).
+- Condição Atual: O fluxo não está concluído e atualmente possui erros que precisam ser investigados.
+- Como iniciar: Digite `n8n` no prompt de comando do Windows.
+
+## BANCO DE DADOS (SUPABASE)
+- Conta/Perfil no Navegador: bainautec@gmail.com
+- Nome do Projeto no Supabase: orbic intelect teo
+- Host (URL): https://ukpkzjidelestigniyni.supabase.co
+- ID / Senha do Banco: [OCULTADO POR SEGURANÇA]
+- Nota: Todas as senhas, rotas e dados de conexão oficiais estão dentro do painel logado com o e-mail acima.
+
+## GOOGLE OAUTH (INTEGRAÇÃO N8N)
+- URL de Callback (Para o n8n): http://localhost:5678/rest/oauth2-credential/callback
+- Client ID: 997534644774-qnjob38ltmsukrg2hli2fj5pf2q906rd.apps.googleusercontent.com
+
+## GOOGLE OAUTH (LOGIN DO SITE ORBIC)
+- Conta/Perfil no Navegador: Perfil "marklima" na conta "marcklima"
+- Projeto Google Cloud: Orbic-login (ID: orbic-login | Número: 175971993784)
+- Origens JavaScript autorizadas: https://www.orbic.com.br
+- Client ID: 175971993784-tdhfgeq1fk77a40q7bh8e8r3p9qnr6uf.apps.googleusercontent.com
+- Client Secret: [OCULTADO POR SEGURANÇA]
+
+## INFRAESTRUTURA VPS (HOSTINGER)
+- Máquina: KVM 1
+- Sistema Operacional: Ubuntu 22.04 LTS
+- Hostname: srv1632191.hstgr.cloud
+- Endereço IP: 187.77.34.55
+- Expiração: 30/05/2026
+- Painel do Coolify: http://187.77.34.55:8000
+
+## CLOUDFLARE
+- Acesso: Navegador Microsoft Edge
+- Método de Login: Autenticado via conta do GitHub
+
+## RELATÓRIO DE CONFIGURAÇÃO DE DOMÍNIO E DNS
+
+**1. Informações Gerais**
+- Domínio: orbic.com.br
+- Data da Configuração: 04 de maio de 2026
+- Responsável: Marcklima (Analista de Suporte de Computação)
+- Provedor de Domínio (Registrar): Registro.br
+- Provedor de Segurança/DNS: Cloudflare
+- Provedor de Hospedagem (VPS): Hostinger
+
+**2. Arquitetura de Apontamento**
+A configuração utiliza o Cloudflare como camada de proteção (Proxy) e o Registro.br como detentor da autoridade do domínio.
+
+*Servidores de Nome (Nameservers)*
+Os servidores DNS do Registro.br foram alterados para os endereços do Cloudflare para permitir o gerenciamento centralizado de segurança e performance:
+- alec.ns.cloudflare.com
+- jillian.ns.cloudflare.com
+
+**3. Registros de Zona DNS (Configurados no Cloudflare)**
+Para manutenção futura, os seguintes registros foram validados e inseridos na zona DNS:
+
+| Tipo | Nome | Conteúdo / Destino | Status de Proxy | Finalidade |
+|---|---|---|---|---|
+| A | @ (root) | 187.77.34.55 | Proxied (Laranja) | Apontamento principal para o VPS Hostinger. |
+| CNAME | www | orbic.com.br | Proxied (Laranja) | Redirecionamento do subdomínio www para a raiz. |
+| MX | @ | (Configuração original detectada) | DNS Only | Roteamento de e-mails para o servidor de destino. |
+| TXT | @ | v=spf1 -all | DNS Only | Segurança de e-mail (SPF) para evitar spoofing. |
+| TXT | _dmarc | v=DMARC1; p=reject; | DNS Only | Política DMARC para rejeição de e-mails não autorizados. |
+
+**4. Configurações de Segurança Ativas**
+- SSL/TLS: Configurado para forçar HTTPS (Always Use HTTPS) através do Cloudflare.
+- Ocultação de IP: O IP real do servidor (187.77.34.55) está oculto pela rede do Cloudflare, prevenindo ataques diretos ao VPS.
+
+**5. Notas para Manutenção Futura**
+- Troca de Servidor: Caso o VPS seja migrado na Hostinger ou para outro provedor, apenas o registro Tipo A com o nome @ precisa ser atualizado com o novo IP.
+- Subdomínios: Para novos serviços (como instâncias de n8n ou aplicações adicionais), criar registros CNAME apontando para @ para herdar a proteção do Cloudflare.
+- E-mail: Os registros SPF e DMARC atuais são restritivos (-all e reject). Se for necessário enviar e-mails pelo domínio, esses registros precisarão ser atualizados com o IP de saída autorizado.
+
+## COOLIFY E ROTEAMENTO (PROXY REVERSO)
+
+**1. Ajuste de Domínios no Coolify**
+Para que os projetos parem de usar os endereços temporários `sslip.io` (ex: `http://jdtle...sslip.io`) e passem a usar o domínio oficial:
+1. Acesse o painel do Coolify (`http://187.77.34.55:8000`).
+2. Vá até as configurações do projeto específico.
+3. No campo **Domains**, substitua o endereço longo pelos endereços reais, separados por vírgula. 
+   - Exemplo para a Orbic: `https://orbic.com.br, https://www.orbic.com.br`
+4. Salve a configuração. O Coolify (através do Traefik) reconfigurará o Proxy Reverso automaticamente para responder por esses nomes.
+
+**2. Manutenção de Múltiplos Projetos/Domínios**
+A configuração do Cloudflare (Registro A apontando para `187.77.34.55`) é a base para hospedar vários sites no mesmo servidor Hostinger.
+- Para cada novo projeto/domínio (ex: `app2.com.br`), deve-se repetir o processo de adicionar o site ao Cloudflare e apontar o Registro A para o mesmo IP `187.77.34.55`.
+- O Coolify fará a separação do tráfego internamente verificando qual domínio está sendo solicitado no momento do acesso.
+- **SSL**: Como o Cloudflare já fornece o certificado SSL na borda (Nuvem Laranja / Proxied), o Coolify pode ser configurado para usar tráfego HTTP simples internamente, ou gerar certificados autoassinados, o que simplifica drasticamente a gestão dos projetos.
+
+## STATUS DE DESENVOLVIMENTO: MÓDULO INTELLECT
+
+### ✅ O que JÁ TEMOS pronto (Fundação e Frontend)
+1. **Landing Page de Vendas (`intellect.ejs`)**: A página comercial apresentando os nichos (LEX, TEOS, GROWTH) e a vitrine de planos de assinatura.
+2. **Interface de Chat (`chat.ejs`)**: A interface visual de interação com a IA está pronta. Ela conta com layout responsivo, sistema de tema Claro/Escuro, controle de tamanho de fonte e barra lateral.
+3. **Rota Backend de Conexão (`server.js`)**: Já construímos a rota `/chat/pergunta` no Node.js. Ela é a ponte que recebe a mensagem do usuário e envia para o **n8n**. Inclusive, já implementamos uma trava de segurança (Exponential Backoff).
+4. **Sistema de Upload de Livros (`admin_upload.ejs` e rotas Admin)**: O painel onde você (Super Admin) faz o upload dos PDFs, categoriza por nicho (Direito, Teologia) e salva fisicamente no `Supabase Storage`.
+
+### ⏳ O que FALTA FAZER (O Cérebro RAG)
+Para o Intellect realmente começar a responder baseando-se nos seus livros, precisamos construir a engrenagem de IA:
+
+1. **Vetorização dos PDFs (O Banco de Conhecimento)**:
+   * Precisamos criar o fluxo que pega o PDF, corta em parágrafos (chunks), transforma em Embeddings (vetores) e salva no banco de dados vetorial (`pgvector` no Supabase).
+2. **O Workflow do n8n**:
+   * Desenhar o fluxo que recebe a pergunta do Node.js -> pesquisa no banco de dados os parágrafos relevantes -> entrega pro Llama 3 (Ollama) formular a resposta -> devolve pro Node.js.
+   * Conectar a variável `N8N_WEBHOOK_URL` no Coolify.
+3. **Histórico de Conversas (Banco de Dados)**:
+   * Criar uma tabela `chats` no Supabase para salvar o histórico do usuário, em vez da barra lateral estática atual.
+4. **Rota de Acesso ao Chat**:
+   * No `server.js`, adicionar o acesso (`app.get('/chat')`) para que o botão "Acessar" funcione.
