@@ -1,22 +1,55 @@
+/* ORBIC SYSTEM - GLOBAL DESIGN SYSTEM 
+   Autoridade: 20 anos de mercado
+   Estilo: High-Tech / Hardware Minimalista
+*/
+
 :root {
-    --bg: #050505;
-    --primary: #00ff88;
-    --accent: #1db954;
-    --text: #ffffff;
-    --text-dim: #888;
+    /* TEMA ESCURO (PROFUNDIDADE) */
+    --bg-deep: #050505;      /* Fundo base infinito */
+    --bg-surface: #0d0d0d;   /* Camada dos Cards */
+    --bg-elevated: #151515;  /* Camada de Menus/Popups */
+    
+    --primary: #00ff88;      /* Verde Neon Orbic */
+    --primary-dim: rgba(0, 255, 136, 0.1);
+    
+    --text-main: #ffffff;
+    --text-muted: #a0a0a0;
+    
+    --border-soft: rgba(255, 255, 255, 0.05);
     --glass: rgba(255, 255, 255, 0.03);
-    --border: rgba(255, 255, 255, 0.1);
+    --glow-effect: 0 0 20px rgba(0, 255, 136, 0.2);
+
+    /* Mapeamento de compatibilidade */
+    --bg: var(--bg-deep);
+    --accent: #1db954;
+    --text: var(--text-main);
+    --text-dim: var(--text-muted);
+    --border: var(--border-soft);
     --device-bg: #111;
 }
 
 [data-theme="light"] {
-    --bg: #f5f7fa;
-    --primary: #00b35f;
+    /* TEMA CLARO (PREMIUM PAPER) */
+    --bg-deep: #fcfcfc;      /* Off-white quente para conforto visual */
+    --bg-surface: #ffffff;
+    --bg-elevated: #f0f2f5;
+    
+    --primary: #00a859;      /* Verde ajustado para contraste (Acessibilidade) */
+    --primary-dim: rgba(0, 168, 89, 0.05);
+    
+    --text-main: #1a1a1a;
+    --text-muted: #666666;
+    
+    --border-soft: rgba(0, 0, 0, 0.08);
+    --glass: rgba(0, 0, 0, 0.02);
+    --glow-effect: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+    /* Mapeamento de compatibilidade */
+    --bg: var(--bg-deep);
     --accent: #117a37;
-    --text: #1a1a1a;
-    --text-dim: #555555;
-    --glass: rgba(0, 0, 0, 0.05);
-    --border: rgba(0, 0, 0, 0.15);
+    --text: var(--text-main);
+    --text-dim: var(--text-muted);
+    --border: var(--border-soft);
     --device-bg: #e0e0e0;
 }
 
@@ -37,39 +70,48 @@
 [data-theme="light"] .promo-kit,
 [data-theme="light"] nav,
 [data-theme="light"] .dropdown-content {
-    background: var(--bg);
+    background: var(--bg-deep);
 }
 
 [data-theme="light"] .card, 
 [data-theme="light"] .hub-card, 
 [data-theme="light"] .nicho-card, 
 [data-theme="light"] .tech-item {
-    background: #ffffff;
+    background: var(--bg-surface);
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
 [data-theme="light"] .logo,
 [data-theme="light"] .nav-links a {
-    color: var(--text);
+    color: var(--text-main);
 }
 [data-theme="light"] .logo { color: var(--primary); }
 [data-theme="light"] .btn-buy, [data-theme="light"] .btn-hub, [data-theme="light"] .btn-cta, [data-theme="light"] .btn-hub-cta { color: #fff !important; }
 [data-theme="light"] #theme-toggle, [data-theme="light"] #theme-toggle-logged { color: #1a1a1a !important; }
 
+/* --- RESET & ESTRUTURA --- */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     scroll-behavior: smooth;
+    transition: background-color 0.5s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 body {
-    background-color: var(--bg);
-    color: var(--text);
+    background-color: var(--bg-deep);
+    color: var(--text-main);
     font-family: 'Inter', sans-serif;
+    line-height: 1.7; /* Melhoria na legibilidade */
     overflow-x: hidden;
-    line-height: 1.6;
     letter-spacing: 0.5px;
+}
+
+/* --- TIPOGRAFIA (AUDITORIA DE DESIGN) --- */
+h1, h2, h3, .title-tech {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em; /* Estilo revista tecnológica */
 }
 
 /* Efeito de Cursor Tecnológico */
@@ -222,14 +264,20 @@ h1 {
 }
 
 .card {
-    background: var(--glass);
-    padding: 50px;
-    border: 1px solid var(--border);
-    transition: 0.5s;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-soft);
+    border-top: 2px solid var(--primary); /* Iluminação vinda de cima */
+    border-radius: 12px;
+    padding: 2rem;
+    backdrop-filter: blur(12px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative; overflow: hidden;
 }
 
-.card:hover { border-color: var(--primary); transform: scale(1.02); }
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--glow-effect);
+}
 .card h3 { font-family: 'Space Grotesk', sans-serif; font-size: 1.8rem; margin-bottom: 15px; }
 .card p { color: #aaa; line-height: 1.6; }
 
@@ -402,6 +450,44 @@ footer {
     0% { top: 10%; opacity: 0; }
     50% { opacity: 1; }
     100% { top: 90%; opacity: 0; }
+}
+
+/* Efeito Glassmorphism Refinado */
+.glass-panel {
+    background: var(--glass);
+    border: 1px solid var(--border-soft);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* Botões Interativos (Micro-interações) */
+.btn-primary {
+    background-color: var(--primary);
+    color: var(--bg-deep);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    box-shadow: 0 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .btn-primary {
+    box-shadow: 0 4px 15px var(--primary-dim); /* Troca de borda por sombra no modo claro */
+}
+
+/* --- BOTÃO TEMA (SOL/LUA) --- */
+.theme-toggle {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-soft);
+    color: var(--primary);
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--glow-effect);
 }
 
 /* =========================================================================
